@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  
+  <defs>
+    <radialGradient id="bg-amber-saffron-extrait-2" cx="50%" cy="40%" r="78%">
+      <stop offset="0" stop-color="#402413"/>
+      <stop offset="0.55" stop-color="#0c0c0e"/>
+      <stop offset="1" stop-color="#050506"/>
+    </radialGradient>
+    <linearGradient id="gold-amber-saffron-extrait-2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7d5f2a"/>
+      <stop offset="0.22" stop-color="#e9d29b"/>
+      <stop offset="0.45" stop-color="#b8913f"/>
+      <stop offset="0.7" stop-color="#f3e3b5"/>
+      <stop offset="1" stop-color="#8c6c31"/>
+    </linearGradient>
+    <linearGradient id="goldv-amber-saffron-extrait-2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e3b5"/>
+      <stop offset="0.5" stop-color="#b8913f"/>
+      <stop offset="1" stop-color="#7d5f2a"/>
+    </linearGradient>
+    <linearGradient id="liquid-amber-saffron-extrait-2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d18856" stop-opacity="0.95"/>
+      <stop offset="0.6" stop-color="#c2601e" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#6b3511" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="glass-amber-saffron-extrait-2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="0.8" stop-color="#ffffff" stop-opacity="0.02"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="matte-amber-saffron-extrait-2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#572b0e"/>
+      <stop offset="0.35" stop-color="#9b4d18"/>
+      <stop offset="0.65" stop-color="#7e3e14"/>
+      <stop offset="1" stop-color="#3a1d09"/>
+    </linearGradient>
+    <filter id="blur-amber-saffron-extrait-2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="glow-amber-saffron-extrait-2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+  </defs>
+  
+  <rect width="800" height="1000" fill="url(#bg-amber-saffron-extrait-2)"/>
+  <circle cx="400" cy="520" r="260" fill="#c2601e" opacity="0.16" filter="url(#glow-amber-saffron-extrait-2)"/>
+  <circle cx="400" cy="560" r="330" fill="none" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="1" opacity="0.35"/>
+  <circle cx="400" cy="560" r="360" fill="none" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="0.6" opacity="0.18"/>
+  <ellipse cx="400" cy="828" rx="250" ry="20" fill="#000" opacity="0.75" filter="url(#blur-amber-saffron-extrait-2)"/>
+  <line x1="120" y1="830" x2="680" y2="830" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="0.8" opacity="0.35"/>
+  <g>
+          <rect x="500" y="560" width="190" height="262" fill="#0d0d0f" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="1.4"/>
+          <polygon points="500,560 690,560 720,535 530,535" fill="#16161a" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="1"/>
+          <polygon points="690,560 720,535 720,797 690,822" fill="#08080a"/>
+          <text x="595" y="690" text-anchor="middle" font-family="Georgia, serif" font-size="13" letter-spacing="4" fill="#d6b46c">ZEN</text>
+          <text x="595" y="712" text-anchor="middle" font-family="Georgia, serif" font-size="13" letter-spacing="4" fill="#d6b46c">AMOUR</text>
+        </g>
+  <g transform="translate(18 182.15999999999997) scale(0.78)">
+    <polygon points="400,150 452,330 348,330" fill="url(#gold-amber-saffron-extrait-2)"/>
+    <polygon points="400,150 400,330 348,330" fill="#000" opacity="0.18"/>
+    <rect x="362" y="326" width="76" height="70" fill="url(#gold-amber-saffron-extrait-2)"/>
+    <path d="M285 396 H515 L540 820 H260 Z" fill="url(#liquid-amber-saffron-extrait-2)"/>
+    <path d="M285 396 H515 L540 820 H260 Z" fill="url(#glass-amber-saffron-extrait-2)" stroke="#fff" stroke-opacity="0.28" stroke-width="2"/>
+    <path d="M300 420 L282 800" stroke="#fff" stroke-opacity="0.16" stroke-width="18" stroke-linecap="round"/>
+    
+  <rect x="300" y="570" width="200" height="128" rx="4" fill="#0a0a0b" fill-opacity="0.88" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="1.4"/>
+  <rect x="307" y="577" width="186" height="114" rx="2" fill="none" stroke="url(#gold-amber-saffron-extrait-2)" stroke-width="0.6" opacity="0.6"/>
+  <text x="400" y="604" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="12" letter-spacing="5" fill="#d6b46c">ZEN AMOUR</text>
+  <text x="400" y="642" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-style="italic" fill="#f5ecd5">Amber Saffron</text>
+  <text x="400" y="670" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" letter-spacing="3.5" fill="#a7803a">EXTRAIT DE PARFUM</text></g>
+  <text x="400" y="930" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" letter-spacing="6" fill="#5d4620">CRAFTED IN SOUTH AFRICA</text>
+</svg>

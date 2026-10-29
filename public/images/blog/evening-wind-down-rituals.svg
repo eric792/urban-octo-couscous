@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  
+  <defs>
+    <radialGradient id="bg-blog-evening-wind-down-rituals" cx="50%" cy="40%" r="78%">
+      <stop offset="0" stop-color="#1a1827"/>
+      <stop offset="0.55" stop-color="#0c0c0e"/>
+      <stop offset="1" stop-color="#050506"/>
+    </radialGradient>
+    <linearGradient id="gold-blog-evening-wind-down-rituals" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7d5f2a"/>
+      <stop offset="0.22" stop-color="#e9d29b"/>
+      <stop offset="0.45" stop-color="#b8913f"/>
+      <stop offset="0.7" stop-color="#f3e3b5"/>
+      <stop offset="1" stop-color="#8c6c31"/>
+    </linearGradient>
+    <linearGradient id="goldv-blog-evening-wind-down-rituals" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e3b5"/>
+      <stop offset="0.5" stop-color="#b8913f"/>
+      <stop offset="1" stop-color="#7d5f2a"/>
+    </linearGradient>
+    <linearGradient id="liquid-blog-evening-wind-down-rituals" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6b678c" stop-opacity="0.95"/>
+      <stop offset="0.6" stop-color="#3a3466" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#201d38" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="glass-blog-evening-wind-down-rituals" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="0.8" stop-color="#ffffff" stop-opacity="0.02"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="matte-blog-evening-wind-down-rituals" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1a172e"/>
+      <stop offset="0.35" stop-color="#2e2a52"/>
+      <stop offset="0.65" stop-color="#262242"/>
+      <stop offset="1" stop-color="#11101f"/>
+    </linearGradient>
+    <filter id="blur-blog-evening-wind-down-rituals" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="glow-blog-evening-wind-down-rituals" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg-blog-evening-wind-down-rituals)"/>
+  <circle cx="820" cy="300" r="260" fill="#3a3466" opacity="0.22" filter="url(#glow-blog-evening-wind-down-rituals)"/>
+  <path d="M860 160 A150 150 0 1 0 860 440 A120 120 0 1 1 860 160 Z" fill="none" stroke="url(#gold-blog-evening-wind-down-rituals)" stroke-width="1.8"/><circle cx="640" cy="180" r="2.5" fill="#e9d29b"/><circle cx="700" cy="420" r="2.5" fill="#e9d29b"/><circle cx="980" cy="250" r="2.5" fill="#e9d29b"/><circle cx="1010" cy="460" r="2.5" fill="#e9d29b"/><circle cx="590" cy="330" r="2.5" fill="#e9d29b"/>
+  <line x1="80" y1="560" x2="460" y2="560" stroke="url(#gold-blog-evening-wind-down-rituals)" stroke-width="1"/>
+  <text x="80" y="600" font-family="Georgia, serif" font-size="18" letter-spacing="8" fill="#d6b46c">THE ZEN AMOUR JOURNAL</text>
+</svg>

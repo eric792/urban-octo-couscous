@@ -1,0 +1,256 @@
+// Zen Amour — core database schema (PostgreSQL via Prisma)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT // created, waiting for Yoco / Payfast / EFT confirmation
+  NEW // paid, ready to fulfil
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentGateway {
+  YOCO
+  PAYFAST
+  EFT
+}
+
+enum DeliveryMethod {
+  PARGO_PICKUP_POINT
+  PARGO_COURIER_DOOR
+  STANDARD_COURIER
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  role         Role      @default(CUSTOMER)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+  addresses    Address[]
+  reviews      Review[]
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  street     String
+  suburb     String
+  city       String
+  province   String // e.g. Gauteng, Western Cape
+  postalCode String
+  isDefault  Boolean @default(false)
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  products    Product[]
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  tagline     String?
+  description String
+  scentNotes  String? // e.g. "Top: Bergamot, Heart: Amber, Base: Oud"
+  categoryId  String
+  category    Category         @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  images      String[] // local /images paths or Cloudinary / S3 URLs
+  isFeatured  Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  reviews     Review[]
+
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id           String      @id @default(cuid())
+  productId    String
+  product      Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku          String      @unique
+  volume       String? // e.g. "50ml", "100ml", "60 capsules"
+  price        Decimal     @db.Decimal(10, 2)
+  comparePrice Decimal?    @db.Decimal(10, 2)
+  stock        Int         @default(0)
+  sortOrder    Int         @default(0)
+  orderItems   OrderItem[]
+
+  @@index([productId])
+}
+
+model Order {
+  id             String         @id @default(cuid())
+  orderNumber    String         @unique
+  userId         String?
+  user           User?          @relation(fields: [userId], references: [id])
+  guestEmail     String?
+  customerName   String
+  customerEmail  String
+  customerPhone  String?
+  status         OrderStatus    @default(PENDING_PAYMENT)
+  subtotal       Decimal        @db.Decimal(10, 2)
+  discountAmount Decimal        @default(0) @db.Decimal(10, 2)
+  discountCode   String?
+  shippingCost   Decimal        @db.Decimal(10, 2)
+  totalAmount    Decimal        @db.Decimal(10, 2)
+  gateway        PaymentGateway
+  gatewayTxId    String? // Yoco payment id / Payfast pf_payment_id
+  gatewayRef     String? // Yoco checkout id
+  paidAt         DateTime?
+
+  // Logistics & Pargo
+  deliveryMethod   DeliveryMethod @default(PARGO_PICKUP_POINT)
+  pargoPointId     String? // Pargo pickup point code
+  pargoPointName   String? // e.g. "Clicks - Rosebank Mall"
+  pargoWaybillCode String? // Pargo tracking / waybill code
+  pargoStatus      String? // latest status from the Pargo webhook
+  trackingNumber   String? // non-Pargo courier tracking
+  shippingAddress  Json
+
+  notes     String?
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([status])
+  @@index([customerEmail])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id           String         @id @default(cuid())
+  orderId      String
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId    String
+  variant      ProductVariant @relation(fields: [variantId], references: [id])
+  // Snapshot of what was bought, so history survives catalogue edits.
+  productName  String
+  variantLabel String?
+  sku          String
+  quantity     Int
+  price        Decimal        @db.Decimal(10, 2)
+
+  @@index([orderId])
+  @@index([variantId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model BlogPost {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String
+  excerpt    String
+  coverImage String
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model DiscountCode {
+  id          String       @id @default(cuid())
+  code        String       @unique // stored upper-case
+  description String?
+  type        DiscountType
+  value       Decimal      @default(0) @db.Decimal(10, 2) // percent or rand amount
+  minSubtotal Decimal?     @db.Decimal(10, 2)
+  maxUses     Int?
+  usedCount   Int          @default(0)
+  active      Boolean      @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime     @default(now())
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+model StoreSettings {
+  id String @id @default("default_settings")
+
+  // Social media & tracking pixels
+  metaPixelId        String? // Meta (Facebook & Instagram) Pixel ID
+  tiktokPixelId      String? // TikTok Ads Pixel ID
+  ga4MeasurementId   String? // Google Analytics 4 (G-XXXXXXXXXX)
+  googleTagManagerId String? // GTM container ID
+
+  // Pargo
+  pargoUsername    String?
+  pargoApiKey      String? // Pargo API password / token (write-only in the admin UI)
+  pargoMapToken    String? // public token for the Pargo pickup point map
+  pargoEnvironment String  @default("sandbox") // "sandbox" or "live"
+
+  // Social profiles (footer, share links)
+  instagramUrl   String?
+  facebookUrl    String?
+  tiktokUrl      String?
+  whatsappNumber String? // floating WhatsApp support button
+
+  // Store & shipping
+  contactEmail          String?
+  announcement          String?
+  pargoPickupFee        Decimal @default(65) @db.Decimal(10, 2)
+  pargoDoorFee          Decimal @default(99) @db.Decimal(10, 2)
+  courierFee            Decimal @default(110) @db.Decimal(10, 2)
+  freeShippingThreshold Decimal @default(750) @db.Decimal(10, 2)
+
+  // Payments
+  yocoEnabled      Boolean @default(true)
+  payfastEnabled   Boolean @default(true)
+  eftEnabled       Boolean @default(true)
+  eftBankName      String?
+  eftAccountName   String?
+  eftAccountNumber String?
+  eftBranchCode    String?
+
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,52 @@
+{
+  "name": "zen-amour",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zen Amour — affordable luxury fragrances, skincare and wellness for South Africa.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate",
+    "db:clear-demo": "tsx --env-file-if-exists=.env scripts/clear-demo-data.ts",
+    "yoco:webhook": "tsx --env-file-if-exists=.env scripts/register-yoco-webhook.ts",
+    "images": "node scripts/generate-images.mjs",
+    "admin:create": "tsx --env-file-if-exists=.env scripts/create-admin.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "bcryptjs": "3.0.3",
+    "jose": "5.10.0",
+    "lucide-react": "1.64.0",
+    "next": "15.5.28",
+    "react": "19.1.10",
+    "react-dom": "19.1.10",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "3.3.1",
+    "@types/node": "22.19.1",
+    "@types/react": "19.1.17",
+    "@types/react-dom": "19.1.11",
+    "autoprefixer": "10.4.21",
+    "eslint": "9.39.1",
+    "eslint-config-next": "15.5.28",
+    "postcss": "8.5.32",
+    "prisma": "6.19.3",
+    "tailwindcss": "3.4.19",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

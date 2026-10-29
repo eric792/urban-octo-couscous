@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  
+  <defs>
+    <radialGradient id="bg-blog-niacinamide-101" cx="50%" cy="40%" r="78%">
+      <stop offset="0" stop-color="#464138"/>
+      <stop offset="0.55" stop-color="#0c0c0e"/>
+      <stop offset="1" stop-color="#050506"/>
+    </radialGradient>
+    <linearGradient id="gold-blog-niacinamide-101" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7d5f2a"/>
+      <stop offset="0.22" stop-color="#e9d29b"/>
+      <stop offset="0.45" stop-color="#b8913f"/>
+      <stop offset="0.7" stop-color="#f3e3b5"/>
+      <stop offset="1" stop-color="#8c6c31"/>
+    </linearGradient>
+    <linearGradient id="goldv-blog-niacinamide-101" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e3b5"/>
+      <stop offset="0.5" stop-color="#b8913f"/>
+      <stop offset="1" stop-color="#7d5f2a"/>
+    </linearGradient>
+    <linearGradient id="liquid-blog-niacinamide-101" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3d5ba" stop-opacity="0.95"/>
+      <stop offset="0.6" stop-color="#d9c7a3" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#776d5a" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="glass-blog-niacinamide-101" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="0.8" stop-color="#ffffff" stop-opacity="0.02"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="matte-blog-niacinamide-101" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#625a49"/>
+      <stop offset="0.35" stop-color="#ae9f82"/>
+      <stop offset="0.65" stop-color="#8d816a"/>
+      <stop offset="1" stop-color="#413c31"/>
+    </linearGradient>
+    <filter id="blur-blog-niacinamide-101" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="glow-blog-niacinamide-101" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg-blog-niacinamide-101)"/>
+  <circle cx="820" cy="300" r="260" fill="#d9c7a3" opacity="0.22" filter="url(#glow-blog-niacinamide-101)"/>
+  <path d="M640 170 C 600 260, 600 330, 640 340 C 680 330, 680 260, 640 170 Z" fill="none" stroke="url(#gold-blog-niacinamide-101)" stroke-width="1.6"/><path d="M790 210 C 750 300, 750 370, 790 380 C 830 370, 830 300, 790 210 Z" fill="none" stroke="url(#gold-blog-niacinamide-101)" stroke-width="1.6"/><path d="M940 250 C 900 340, 900 410, 940 420 C 980 410, 980 340, 940 250 Z" fill="none" stroke="url(#gold-blog-niacinamide-101)" stroke-width="1.6"/>
+  <line x1="80" y1="560" x2="460" y2="560" stroke="url(#gold-blog-niacinamide-101)" stroke-width="1"/>
+  <text x="80" y="600" font-family="Georgia, serif" font-size="18" letter-spacing="8" fill="#d6b46c">THE ZEN AMOUR JOURNAL</text>
+</svg>

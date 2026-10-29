@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  
+  <defs>
+    <radialGradient id="bg-cedar-sea-salt-1" cx="50%" cy="40%" r="78%">
+      <stop offset="0" stop-color="#172429"/>
+      <stop offset="0.55" stop-color="#0c0c0e"/>
+      <stop offset="1" stop-color="#050506"/>
+    </radialGradient>
+    <linearGradient id="gold-cedar-sea-salt-1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7d5f2a"/>
+      <stop offset="0.22" stop-color="#e9d29b"/>
+      <stop offset="0.45" stop-color="#b8913f"/>
+      <stop offset="0.7" stop-color="#f3e3b5"/>
+      <stop offset="1" stop-color="#8c6c31"/>
+    </linearGradient>
+    <linearGradient id="goldv-cedar-sea-salt-1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e3b5"/>
+      <stop offset="0.5" stop-color="#b8913f"/>
+      <stop offset="1" stop-color="#7d5f2a"/>
+    </linearGradient>
+    <linearGradient id="liquid-cedar-sea-salt-1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#638790" stop-opacity="0.95"/>
+      <stop offset="0.6" stop-color="#2f5f6b" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#1a343b" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="glass-cedar-sea-salt-1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.18" stop-color="#ffffff" stop-opacity="0.04"/>
+      <stop offset="0.8" stop-color="#ffffff" stop-opacity="0.02"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="matte-cedar-sea-salt-1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#152b30"/>
+      <stop offset="0.35" stop-color="#264c56"/>
+      <stop offset="0.65" stop-color="#1f3e46"/>
+      <stop offset="1" stop-color="#0e1d20"/>
+    </linearGradient>
+    <filter id="blur-cedar-sea-salt-1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+    <filter id="glow-cedar-sea-salt-1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+  </defs>
+  
+  <rect width="800" height="1000" fill="url(#bg-cedar-sea-salt-1)"/>
+  <circle cx="400" cy="520" r="260" fill="#2f5f6b" opacity="0.16" filter="url(#glow-cedar-sea-salt-1)"/>
+  <circle cx="400" cy="560" r="330" fill="none" stroke="url(#gold-cedar-sea-salt-1)" stroke-width="1" opacity="0.35"/>
+  <circle cx="400" cy="560" r="360" fill="none" stroke="url(#gold-cedar-sea-salt-1)" stroke-width="0.6" opacity="0.18"/>
+  <ellipse cx="400" cy="828" rx="250" ry="20" fill="#000" opacity="0.75" filter="url(#blur-cedar-sea-salt-1)"/>
+  <line x1="120" y1="830" x2="680" y2="830" stroke="url(#gold-cedar-sea-salt-1)" stroke-width="0.8" opacity="0.35"/>
+  
+  <g transform="translate(0 0) scale(1)">
+    <rect x="365" y="352" width="70" height="56" fill="url(#gold-cedar-sea-salt-1)"/>
+    <rect x="322" y="214" width="156" height="146" rx="8" fill="url(#gold-cedar-sea-salt-1)"/>
+    <rect x="322" y="214" width="156" height="146" rx="8" fill="none" stroke="#000" stroke-opacity="0.25"/>
+    <rect x="338" y="226" width="18" height="122" rx="6" fill="#fff" opacity="0.22"/>
+    <rect x="245" y="400" width="310" height="420" rx="30" fill="url(#liquid-cedar-sea-salt-1)"/>
+    <rect x="245" y="400" width="310" height="420" rx="30" fill="url(#glass-cedar-sea-salt-1)" stroke="#fff" stroke-opacity="0.28" stroke-width="2"/>
+    <rect x="262" y="420" width="24" height="380" rx="12" fill="#fff" opacity="0.14"/>
+    
+  <rect x="295" y="560" width="210" height="128" rx="4" fill="#0a0a0b" fill-opacity="0.88" stroke="url(#gold-cedar-sea-salt-1)" stroke-width="1.4"/>
+  <rect x="302" y="567" width="196" height="114" rx="2" fill="none" stroke="url(#gold-cedar-sea-salt-1)" stroke-width="0.6" opacity="0.6"/>
+  <text x="400" y="594" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="12" letter-spacing="5" fill="#d6b46c">ZEN AMOUR</text>
+  <text x="400" y="632" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-style="italic" fill="#f5ecd5">Cedar &amp; Sea Salt</text>
+  <text x="400" y="660" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" letter-spacing="3.5" fill="#a7803a">EAU DE PARFUM</text></g>
+  <text x="400" y="930" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" letter-spacing="6" fill="#5d4620">CRAFTED IN SOUTH AFRICA</text>
+</svg>
