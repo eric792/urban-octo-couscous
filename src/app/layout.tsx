@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { STORE_NAME, STORE_TAGLINE } from "@/lib/constants";
 import { getAppUrl } from "@/lib/utils";
 import "./globals.css";
@@ -57,7 +58,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-ZA" className={`${serif.variable} ${sans.variable}`}>
-      <body className="min-h-screen bg-ink-900 font-sans text-zinc-200">{children}</body>
+      <body className="min-h-screen bg-ink-900 font-sans text-zinc-200">
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
