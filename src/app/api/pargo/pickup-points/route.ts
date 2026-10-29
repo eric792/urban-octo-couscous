@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { captureError } from "@/lib/monitoring";
 import { searchPickupPoints } from "@/lib/pargo";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const { points, source } = await searchPickupPoints(search);
     return NextResponse.json({ pickupPoints: points, source });
   } catch (err) {
-    console.error("[pargo] pickup point search failed", err);
+    captureError(err, { area: "pargo", extra: { operation: "pickup-point-search" } });
     return NextResponse.json({ error: "Pargo is unavailable right now. Try door delivery instead." }, { status: 502 });
   }
 }

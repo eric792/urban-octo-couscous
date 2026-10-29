@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { captureAlert, logger } from "@/lib/monitoring";
 import { appendOrderNote, markOrderPaid, markPaymentFailed } from "@/lib/orders";
 import { verifyYocoWebhook, type YocoWebhookEvent } from "@/lib/payments/yoco";
 
@@ -11,6 +12,7 @@ import { verifyYocoWebhook, type YocoWebhookEvent } from "@/lib/payments/yoco";
 export async function POST(req: Request) {
   const raw = await req.text();
   if (!verifyYocoWebhook(raw, req.headers)) {
+    logger.warn("Yoco webhook rejected: invalid signature or timestamp", { hasSecret: Boolean(process.env.YOCO_WEBHOOK_SECRET) });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
 
   if (!order) {
     // Acknowledge so Yoco stops retrying; nothing we can match.
-    console.warn(`[yoco] no order for event ${event.id} (checkout ${meta.checkoutId ?? "?"})`);
+    captureAlert("Yoco webhook for an unknown order", { area: "yoco", gateway: "YOCO", extra: { eventId: event.id, checkoutId: meta.checkoutId } }, "warning");
     return NextResponse.json({ received: true });
   }
 

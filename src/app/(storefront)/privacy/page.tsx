@@ -23,7 +23,7 @@ export default async function PrivacyPage() {
       </section>
       <section>
         <h2>Who we share it with</h2>
-        <p>Only the partners needed to serve you: our payment providers, Pargo and courier partners for delivery, and our email provider. We never sell your information.</p>
+        <p>Only the partners needed to serve you: our payment providers, Pargo and courier partners for delivery, our email provider, and Sentry, which records technical errors so we can fix them (configured not to collect your name, contact details, address or IP address). We never sell your information.</p>
       </section>
       <section>
         <h2>Cookies &amp; advertising</h2>

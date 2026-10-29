@@ -1,5 +1,6 @@
 import type { Order, OrderItem } from "@prisma/client";
 import { DELIVERY_OPTIONS, STORE_NAME } from "@/lib/constants";
+import { captureError } from "@/lib/monitoring";
 import { absoluteUrl, formatZAR } from "@/lib/utils";
 
 /*
@@ -25,9 +26,9 @@ async function sendEmail(to: string, subject: string, html: string) {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, subject, html }),
     });
-    if (!res.ok) console.error(`[email] send failed (${res.status}) for "${subject}"`);
+    if (!res.ok) captureError(new Error(`Resend responded ${res.status}`), { area: "email", extra: { subject } });
   } catch (err) {
-    console.error("[email] send error", err);
+    captureError(err, { area: "email", extra: { subject } });
   }
 }
 

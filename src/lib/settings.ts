@@ -115,6 +115,11 @@ export function gatewayStatus() {
       mode: process.env.YOCO_SECRET_KEY?.startsWith("sk_live") ? "live" : "test",
       webhookConfigured: Boolean(process.env.YOCO_WEBHOOK_SECRET),
     },
+    sentry: {
+      configured: Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN),
+      sourceMaps: Boolean(process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT),
+      environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development",
+    },
     payfast: {
       configured: Boolean(process.env.PAYFAST_MERCHANT_ID && process.env.PAYFAST_MERCHANT_KEY),
       mode: process.env.PAYFAST_SANDBOX === "false" ? "live" : "sandbox",

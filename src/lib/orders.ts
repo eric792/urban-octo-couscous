@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { sendOrderConfirmation } from "@/lib/email";
+import { captureAlert, logger, metrics } from "@/lib/monitoring";
 import { toCents } from "@/lib/utils";
 
 function stamp(note: string): string {
@@ -32,6 +33,13 @@ export async function markOrderPaid(
   if (!order) return { updated: false, reason: "not_found" };
 
   if (opts.amountCents !== undefined && opts.amountCents !== toCents(order.totalAmount)) {
+    captureAlert("Payment amount does not match order total", {
+      area: "orders",
+      gateway: order.gateway,
+      orderId,
+      orderNumber: order.orderNumber,
+      extra: { paidCents: opts.amountCents, expectedCents: toCents(order.totalAmount), source: opts.source },
+    });
     await appendOrderNote(
       orderId,
       `${opts.source}: payment amount ${opts.amountCents / 100} does not match order total ${order.totalAmount.toString()}. Not marked as paid — please check the gateway dashboard.`,
@@ -69,6 +77,9 @@ export async function markOrderPaid(
 
   await appendOrderNote(orderId, `${opts.source}: payment confirmed${opts.gatewayTxId ? ` (ref ${opts.gatewayTxId})` : ""}.`);
   revalidateTag("catalog"); // stock levels changed
+  logger.info("Order paid", { orderNumber: order.orderNumber, gateway: order.gateway, total: Number(order.totalAmount), source: opts.source });
+  metrics.count("order.paid", 1, { attributes: { gateway: order.gateway } });
+  metrics.distribution("order.value", Number(order.totalAmount), { attributes: { gateway: order.gateway } });
 
   const paid = await db.order.findUnique({ where: { id: orderId }, include: { items: true } });
   if (paid) await sendOrderConfirmation(paid);
@@ -81,5 +92,9 @@ export async function markPaymentFailed(orderId: string, source: string, reason:
     where: { id: orderId, status: "PENDING_PAYMENT", paidAt: null },
     data: { status: "CANCELLED" },
   });
-  if (res.count > 0) await appendOrderNote(orderId, `${source}: ${reason}`);
+  if (res.count > 0) {
+    await appendOrderNote(orderId, `${source}: ${reason}`);
+    logger.info("Order payment failed or cancelled", { orderId, source, reason });
+    metrics.count("order.payment_failed", 1, { attributes: { source } });
+  }
 }

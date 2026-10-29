@@ -104,6 +104,30 @@ Set `RESEND_API_KEY`, `EMAIL_FROM` (on a domain verified in Resend) and optional
 - Filtered, sorted and search views are `noindex, follow` with a clean canonical.
 - The 11 [superseo skills](https://github.com/inhouseseo/superseo-skills) (Apache 2.0) are installed in `.claude/skills/` for Claude Code: `page-audit`, `eeat-audit`, `improve-content`, `write-content`, `content-brief`, `keyword-deep-dive`, `semantic-gap-analysis`, `topic-cluster-planning`, `featured-snippet-optimizer`, `linkbuilding`, `expert-interview`. The first audit is in [`docs/seo/page-audit.md`](docs/seo/page-audit.md).
 
+## Error monitoring (Sentry)
+
+Set up per the [Sentry Next.js guide](https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/): `src/instrumentation-client.ts`, `src/sentry.server.config.ts`, `src/sentry.edge.config.ts`, `src/instrumentation.ts` (`onRequestError`), `src/app/global-error.tsx`, plus storefront and admin error pages. `next.config.ts` is wrapped with `withSentryConfig`, and browser events go through `/monitoring` so ad blockers don't drop them.
+
+1. Create a Next.js project in Sentry and copy its DSN into `NEXT_PUBLIC_SENTRY_DSN`.
+2. For readable stack traces, set `SENTRY_ORG`, `SENTRY_PROJECT` and `SENTRY_AUTH_TOKEN` where you build (CI or your host). Never commit the token.
+3. Without a DSN, Sentry stays switched off. Nothing is sent.
+
+Shop-specific reporting (`src/lib/monitoring.ts`):
+- **Errors:** payment start failures, Pargo search and waybill failures, email failures.
+- **Alerts:** payment amount mismatches, rejected Payfast notifications, webhooks for unknown orders.
+- **Logs and metrics:** `checkout.started`, `order.paid`, `order.value`, `order.payment_failed`.
+
+**Privacy (POPIA):** the SDK is told not to collect user identity or IP address, cookies, request bodies (checkout forms), database query values or local variables. Session replays are recorded only when an error happens, with all text and inputs masked. Never add customer emails, phones or addresses to Sentry tags or logs; use order numbers.
+
+## Claude Code skills
+
+`.claude/skills/` contains two skill packs that Claude Code picks up automatically in this repo:
+
+- **SEO** — the 11 [superseo skills](https://github.com/inhouseseo/superseo-skills) (Apache 2.0) described above.
+- **Development workflow** — the 15 [superpowers skills](https://github.com/obra/superpowers) (MIT): `brainstorming`, `writing-plans`, `executing-plans`, `test-driven-development`, `systematic-debugging`, `verification-before-completion`, `requesting-code-review`, `receiving-code-review`, `using-git-worktrees`, `finishing-a-development-branch`, `subagent-driven-development`, `dispatching-parallel-agents`, `writing-skills`, `using-superpowers`, `diagnosing-superpowers`.
+
+The superpowers session-start hook isn't included. For the full plugin (with the hook that reminds Claude to use the skills every session), run `/plugin install superpowers@claude-plugins-official` in Claude Code.
+
 ## Useful scripts
 
 | Command | What it does |

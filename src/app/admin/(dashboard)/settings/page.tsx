@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CreditCard, Landmark, Store, Truck, Webhook } from "lucide-react";
+import { Activity, ArrowRight, CreditCard, Landmark, Store, Truck, Webhook } from "lucide-react";
 import { saveGeneralSettings, savePargoSettings, savePaymentSettings, saveShippingSettings } from "@/actions/admin-settings";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AdminHeader } from "@/components/admin/AdminHeader";
@@ -139,6 +139,19 @@ export default async function AdminSettingsPage() {
             <p>Yoco: <code className="text-gold-300">{absoluteUrl("/api/webhooks/yoco")}</code> — register it with <code>npm run yoco:webhook</code></p>
             <p className="mt-1">Payfast ITN: <code className="text-gold-300">{absoluteUrl("/api/webhooks/payfast")}</code> — sent automatically with each payment</p>
           </div>
+        </Section>
+
+        <Section Icon={Activity} title="Error monitoring (Sentry)" text="Payment, webhook, Pargo and email failures are reported to Sentry with customer details stripped.">
+          <div className="flex flex-wrap gap-2">
+            {gw.sentry.configured ? <Badge tone="green">Connected</Badge> : <Badge tone="zinc">Not connected</Badge>}
+            <Badge tone="blue">{gw.sentry.environment}</Badge>
+            {gw.sentry.sourceMaps ? <Badge tone="green">Source maps upload</Badge> : <Badge tone="zinc">No source maps</Badge>}
+          </div>
+          {!gw.sentry.configured && (
+            <p className="mt-4 text-xs text-zinc-500">
+              Set <code className="text-gold-300">NEXT_PUBLIC_SENTRY_DSN</code> (and optionally <code className="text-gold-300">SENTRY_ORG</code>, <code className="text-gold-300">SENTRY_PROJECT</code>, <code className="text-gold-300">SENTRY_AUTH_TOKEN</code> for readable stack traces), then redeploy.
+            </p>
+          )}
         </Section>
 
         <Section Icon={Truck} title="Pargo courier & pickup gateway" text="Pickup point search, automatic waybill generation and status sync.">

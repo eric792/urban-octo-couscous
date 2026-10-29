@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -22,4 +23,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Uploads source maps for readable stack traces when SENTRY_AUTH_TOKEN is set (keep it secret).
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  // Routes browser events through /monitoring so ad blockers don't drop them.
+  tunnelRoute: "/monitoring",
+  // Only print source-map upload logs in CI.
+  silent: !process.env.CI,
+  telemetry: false,
+  // Strip SDK debug logging from the browser bundle.
+  bundleSizeOptimizations: { excludeDebugStatements: true },
+});

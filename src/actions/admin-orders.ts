@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { ORDER_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { sendShippingUpdate } from "@/lib/email";
+import { captureError } from "@/lib/monitoring";
 import { appendOrderNote, markOrderPaid } from "@/lib/orders";
 import { createPargoShipment } from "@/lib/pargo";
 import type { ActionState, OrderStatus } from "@/types";
@@ -66,6 +67,7 @@ export async function generatePargoWaybill(orderId: string, _prev: ActionState, 
     refresh(orderId);
     return { ok: true, message: `Waybill ${waybill} created` };
   } catch (err) {
+    captureError(err, { area: "pargo", orderId, orderNumber: order.orderNumber, extra: { operation: "create-waybill" } });
     return { ok: false, message: (err as Error).message };
   }
 }

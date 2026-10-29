@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { availableGateways, createPendingOrder } from "@/lib/checkout";
 import { db } from "@/lib/db";
+import { captureError, logger, metrics } from "@/lib/monitoring";
 import { markPaymentFailed } from "@/lib/orders";
 import { buildPayfastCheckout } from "@/lib/payments/payfast";
 import { createYocoCheckout } from "@/lib/payments/yoco";
@@ -44,6 +45,14 @@ export async function POST(req: Request) {
   }
 
   const order = await createPendingOrder(input, quote);
+  logger.info("Checkout started", {
+    orderNumber: order.orderNumber,
+    gateway: input.gateway,
+    deliveryMethod: input.deliveryMethod,
+    total: quote.total,
+    discountCode: quote.discountCode ?? "none",
+  });
+  metrics.count("checkout.started", 1, { attributes: { gateway: input.gateway } });
 
   if (input.marketingOptIn) {
     await db.subscriber
@@ -91,7 +100,8 @@ export async function POST(req: Request) {
     // Manual EFT: the order waits until the owner confirms the transfer in Admin.
     return NextResponse.json({ ok: true, type: "redirect", url: successUrl, orderNumber: order.orderNumber });
   } catch (err) {
-    console.error("[checkout] payment initiation failed", err);
+    captureError(err, { area: "checkout", gateway: input.gateway, orderId: order.id, orderNumber: order.orderNumber });
+    metrics.count("checkout.payment_init_failed", 1, { attributes: { gateway: input.gateway } });
     await markPaymentFailed(order.id, input.gateway, `Could not start payment: ${(err as Error).message}`);
     return NextResponse.json(
       { ok: false, message: "We couldn't connect to the payment provider. Please try again or choose another method." },

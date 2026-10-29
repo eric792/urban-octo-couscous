@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { captureAlert } from "@/lib/monitoring";
 import { appendOrderNote, markOrderPaid, markPaymentFailed } from "@/lib/orders";
 import { verifyPayfastItn } from "@/lib/payments/payfast";
 import { toCents } from "@/lib/utils";
@@ -14,7 +15,12 @@ export async function POST(req: Request) {
 
   const check = await verifyPayfastItn(raw, ip);
   if (!check.valid) {
-    console.warn(`[payfast] ITN rejected: ${check.reason}`);
+    captureAlert(`Payfast ITN rejected: ${check.reason.split(":")[0]}`, {
+      area: "payfast",
+      gateway: "PAYFAST",
+      orderId: check.data?.m_payment_id,
+      extra: { reason: check.reason, paymentStatus: check.data?.payment_status },
+    }, "warning");
     return new Response("Invalid ITN", { status: 400 });
   }
 
@@ -23,7 +29,7 @@ export async function POST(req: Request) {
     ? await db.order.findUnique({ where: { id: data.m_payment_id }, select: { id: true } })
     : null;
   if (!order) {
-    console.warn(`[payfast] ITN for unknown order ${data.m_payment_id}`);
+    captureAlert("Payfast ITN for an unknown order", { area: "payfast", gateway: "PAYFAST", orderId: data.m_payment_id }, "warning");
     return new Response("OK");
   }
 
