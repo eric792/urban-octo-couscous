@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import dns from "node:dns/promises";
+import { fetchWithTimeout, TIMEOUTS } from "@/lib/http";
 
 // Payfast redirect checkout + ITN (Instant Transaction Notification) — https://developers.payfast.co.za
 
@@ -97,7 +98,7 @@ export function buildPayfastCheckout(params: {
 
 export type ItnCheck =
   | { valid: true; data: Record<string, string> }
-  | { valid: false; reason: string; data?: Record<string, string> };
+  | { valid: false; reason: string; data?: Record<string, string>; retryable?: boolean };
 
 async function ipIsPayfast(ip: string): Promise<boolean> {
   const results = await Promise.all(VALID_HOSTS.map((h) => dns.resolve4(h).catch(() => [] as string[])));
@@ -137,16 +138,17 @@ export async function verifyPayfastItn(rawBody: string, sourceIp: string | null)
   }
 
   try {
-    const res = await fetch(cfg.validateUrl, {
+    const res = await fetchWithTimeout("Payfast", cfg.validateUrl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: php,
-      cache: "no-store",
+      timeoutMs: TIMEOUTS.payfast,
     });
+    if (res.status >= 500) return { valid: false, reason: `server confirmation unavailable (${res.status})`, data, retryable: true };
     const text = (await res.text()).trim();
     if (text !== "VALID") return { valid: false, reason: `server confirmation returned "${text.slice(0, 40)}"`, data };
   } catch (err) {
-    return { valid: false, reason: `server confirmation failed: ${(err as Error).message}`, data };
+    return { valid: false, reason: `server confirmation failed: ${(err as Error).message}`, data, retryable: true };
   }
 
   return { valid: true, data };

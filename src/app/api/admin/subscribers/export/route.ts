@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { ApiError, withApi } from "@/lib/api";
 import { getAdminSession } from "@/lib/auth";
 import { toCsv } from "@/lib/crm";
 import { db } from "@/lib/db";
 
-export async function GET() {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withApi({ name: "admin.export", rateLimit: ["adminExport"], timeoutMs: 20_000 }, async () => {
+  if (!(await getAdminSession())) throw new ApiError(401, "UNAUTHORIZED", "Please sign in again.");
   const subscribers = await db.subscriber.findMany({ orderBy: { createdAt: "desc" } });
   const csv = toCsv([
     ["Email", "Source", "Subscribed at"],
@@ -16,4 +17,4 @@ export async function GET() {
       "Content-Disposition": 'attachment; filename="zen-amour-subscribers.csv"',
     },
   });
-}
+});

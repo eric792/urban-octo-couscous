@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Mail, Package, ShoppingCart, Users, Wallet } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricsCard } from "@/components/admin/MetricsCard";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import { RevenueChart } from "@/components/admin/RevenueChart";
@@ -72,6 +73,9 @@ export default async function AdminOverviewPage() {
               All orders <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
+          {s.recent.length === 0 ? (
+            <EmptyState variant="admin" icon={ShoppingCart} title="No orders yet" description="Orders appear here the moment a customer checks out." action={{ label: "View store", href: "/" }} />
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <tbody className="divide-y divide-zinc-800/60">
@@ -90,6 +94,7 @@ export default async function AdminOverviewPage() {
               </tbody>
             </table>
           </div>
+          )}
         </section>
 
         <section className="admin-card p-6">

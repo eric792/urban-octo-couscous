@@ -4,6 +4,7 @@ import { createDiscount, deleteDiscount, toggleDiscount } from "@/actions/admin-
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
@@ -54,6 +55,13 @@ export default async function AdminMarketingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/60">
+                {codes.length === 0 && (
+                  <tr>
+                    <td colSpan={5}>
+                      <EmptyState variant="admin" icon={Percent} title="No discount codes yet" description="Create your first code with the form below — e.g. WELCOME10 for new subscribers." />
+                    </td>
+                  </tr>
+                )}
                 {codes.map((c) => {
                   const expired = c.expiresAt && c.expiresAt < new Date();
                   return (
@@ -152,6 +160,7 @@ export default async function AdminMarketingPage() {
             <p className="mt-3 font-serif text-3xl text-white">{subscriberCount}</p>
             <p className="text-xs text-zinc-500">subscribers — import the CSV into Mailchimp, Klaviyo or Omnisend</p>
             <ul className="mt-4 space-y-1.5 text-sm">
+              {recentSubscribers.length === 0 && <li className="text-zinc-500">No subscribers yet. The homepage and checkout sign-ups land here.</li>}
               {recentSubscribers.map((s) => (
                 <li key={s.id} className="flex justify-between gap-3 text-zinc-400">
                   <span className="truncate">{s.email}</span>
@@ -172,7 +181,7 @@ export default async function AdminMarketingPage() {
           </div>
         </div>
         {abandoned.length === 0 ? (
-          <p className="px-6 py-8 text-sm text-zinc-500">No abandoned checkouts.</p>
+          <EmptyState variant="admin" icon={ShoppingCart} title="No abandoned checkouts" description="Unpaid checkouts from the last 14 days show up here so you can follow up." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

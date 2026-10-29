@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { CreditCard, SlidersHorizontal, Store, Truck, X } from "lucide-react";
+import { CreditCard, SearchX, SlidersHorizontal, Store, Truck, X } from "lucide-react";
 import { ProductCard } from "@/components/storefront/ProductCard";
 import { SortSelect } from "@/components/storefront/SortSelect";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { searchProducts, type SortOption } from "@/lib/catalog";
 import { extractFaqs, renderMarkdown } from "@/lib/markdown";
 import { STORE_NAME } from "@/lib/constants";
@@ -224,11 +225,19 @@ export async function ShopView({
           </div>
 
           {products.length === 0 ? (
-            <div className="card flex flex-col items-center gap-4 px-6 py-20 text-center">
-              <p className="font-serif text-2xl text-white">Nothing matches those filters</p>
-              <p className="text-sm text-zinc-500">Try another category or clear your filters.</p>
-              <Link href="/shop" className="btn-outline mt-2">View everything</Link>
-            </div>
+            <EmptyState
+              icon={SearchX}
+              title={q ? `No results for “${q}”` : filtered ? "Nothing matches those filters" : "New pieces are on their way"}
+              description={
+                q
+                  ? "Check the spelling, or try a note like oud, musk or vitamin C."
+                  : filtered
+                    ? "Try a different price range, or include sold-out items."
+                    : "This collection is being restocked. Explore the rest of the range in the meantime."
+              }
+              action={filtered || q ? { label: "Clear filters", href: basePath } : { label: "Shop everything", href: "/shop" }}
+              secondaryAction={q || filtered ? { label: "Shop everything", href: "/shop" } : undefined}
+            />
           ) : (
             <div className="grid grid-cols-2 gap-x-5 gap-y-12 xl:grid-cols-3">
               {products.map((p, i) => (

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { fetchWithTimeout, TIMEOUTS } from "@/lib/http";
 
 // Yoco Checkout API — https://developer.yoco.com
 // Amounts are integer cents in ZAR. Test vs live mode is decided by the key (sk_test_ / sk_live_).
@@ -27,7 +28,8 @@ export async function createYocoCheckout(params: {
   cancelUrl: string;
   failureUrl: string;
 }): Promise<YocoCheckout> {
-  const res = await fetch(`${YOCO_API}/checkouts`, {
+  const res = await fetchWithTimeout("Yoco", `${YOCO_API}/checkouts`, {
+    timeoutMs: TIMEOUTS.yoco,
     method: "POST",
     headers: {
       Authorization: `Bearer ${secretKey()}`,
@@ -43,7 +45,6 @@ export async function createYocoCheckout(params: {
       failureUrl: params.failureUrl,
       metadata: { orderId: params.orderId, orderNumber: params.orderNumber },
     }),
-    cache: "no-store",
   });
 
   const data = (await res.json().catch(() => ({}))) as Partial<YocoCheckout> & { message?: string };
@@ -55,7 +56,8 @@ export async function createYocoCheckout(params: {
 
 /** Registers our webhook URL with Yoco. Returns the signing secret (shown once). */
 export async function registerYocoWebhook(url: string, name = "zen-amour-orders") {
-  const res = await fetch(`${YOCO_API}/webhooks`, {
+  const res = await fetchWithTimeout("Yoco", `${YOCO_API}/webhooks`, {
+    timeoutMs: TIMEOUTS.yoco,
     method: "POST",
     headers: { Authorization: `Bearer ${secretKey()}`, "Content-Type": "application/json" },
     body: JSON.stringify({ name, url }),

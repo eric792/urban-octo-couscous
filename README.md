@@ -94,6 +94,7 @@ Set `RESEND_API_KEY`, `EMAIL_FROM` (on a domain verified in Resend) and optional
 - [ ] Use a strong admin password: `npm run admin:create -- you@yourdomain.co.za "a-long-password"`.
 - [ ] Switch Yoco to `sk_live_…`, Payfast to live (`PAYFAST_SANDBOX="false"`) and Pargo to live.
 - [ ] Register the Yoco webhook against the live domain and give Pargo the status webhook URL.
+- [ ] Add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` so rate limits hold across server instances.
 - [ ] Update the contact email, announcement bar and delivery fees in Admin → Settings.
 - [ ] Have the returns, privacy and wellness wording checked for your business (CPA, POPIA, SAHPRA).
 
@@ -114,10 +115,51 @@ Set up per the [Sentry Next.js guide](https://docs.sentry.io/platforms/javascrip
 
 Shop-specific reporting (`src/lib/monitoring.ts`):
 - **Errors:** payment start failures, Pargo search and waybill failures, email failures.
-- **Alerts:** payment amount mismatches, rejected Payfast notifications, webhooks for unknown orders.
+- **Alerts:** payment amount mismatches, duplicate payments, rejected Payfast notifications, webhooks for unknown orders.
 - **Logs and metrics:** `checkout.started`, `order.paid`, `order.value`, `order.payment_failed`.
 
 **Privacy (POPIA):** the SDK is told not to collect user identity or IP address, cookies, request bodies (checkout forms), database query values or local variables. Session replays are recorded only when an error happens, with all text and inputs masked. Never add customer emails, phones or addresses to Sentry tags or logs; use order numbers.
+
+## Reliability & abuse protection
+
+**Rate limits** (`src/lib/rate-limit.ts`). Limits are per IP unless noted. A request over the limit gets `429` with `Retry-After`.
+
+| What | Limit |
+|---|---|
+| Checkout | 10 per minute, 40 per hour |
+| Price quotes | 60 per minute |
+| Pargo pickup-point search | 30 per minute |
+| Payment and Pargo webhooks | 300 per minute |
+| Newsletter sign-up | 5 per minute |
+| Order tracking | 10 per minute |
+| Admin sign-in | 8 failed attempts per IP and 10 per email, per 15 minutes |
+| Admin CSV exports | 20 per minute |
+
+Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (free tier is enough) so every server instance shares the same counters. You need this on Vercel or any serverless host. Without them, each instance counts in memory. If Redis is down, the limiter lets requests through rather than block checkout.
+
+The client IP is read from `x-real-ip` / `x-forwarded-for`. Vercel sets these. On your own server, make your proxy (nginx, Cloudflare) overwrite them so visitors can't fake them.
+
+**API limits and errors.** Every API route goes through `withApi` (`src/lib/api.ts`):
+- Request bodies are capped: 16 KB for checkout, 64 KB for webhooks, 256 KB for server actions.
+- Errors map to standard responses: malformed JSON → 400, validation → 422 with field errors, timeout → 504, database unavailable → 503, anything unexpected → 500 (reported to Sentry).
+- Errors share one shape, `{ ok: false, code, message }`, and every response carries an `X-Request-Id`.
+
+**Timeouts.** Outbound calls time out after: Yoco 15 s; Payfast, Pargo and Resend 10 s; Redis 1.5 s. API routes stop before the host does (10–28 s). Database connect and pool waits are 10 s (set in `DATABASE_URL`). In the browser, price quotes retry automatically, and checkout retries once (safe, see below).
+
+**Duplicate payments** are blocked at every step:
+1. The Pay button ignores double clicks and double Enter.
+2. Each checkout attempt sends an `Idempotency-Key`. Retries and repeat submits get the same order and the same payment link.
+3. The same bag submitted from a second tab within 15 minutes reuses the unpaid order.
+4. Retrying an attempt that's already paid sends the shopper to the confirmation page.
+5. Gateway payment IDs are unique in the database, and an order is marked paid once. Stock and discount use are counted once.
+6. If a second, different payment arrives for a paid order, it's flagged in the order notes ("DUPLICATE PAYMENT") and raised as a Sentry alert. Refund it in the Yoco or Payfast dashboard.
+7. A Payfast notification that can't be verified yet gets a 503, so Payfast retries it.
+
+**In the UI:**
+- Loading skeletons on storefront and admin pages.
+- Empty states for searches, filters and empty lists.
+- An offline banner.
+- Friendly messages with Retry when a request fails or times out. The bag and form contents are kept.
 
 ## Claude Code skills
 
@@ -158,5 +200,5 @@ src/lib              db, pricing, orders, payments/, pargo, settings, catalog, e
 
 ## Notes
 
-- The in-memory rate limiter protects a single server. On serverless or multi-instance hosting, swap it for Redis (e.g. Upstash).
+- On serverless or multi-instance hosting, set the Upstash Redis keys so rate limits are shared (see [Reliability & abuse protection](#reliability--abuse-protection)).
 - Refunds are processed in the Yoco or Payfast dashboard. Marking an order "Refunded" in admin only records it.

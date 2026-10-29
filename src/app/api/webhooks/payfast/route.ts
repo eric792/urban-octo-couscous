@@ -1,3 +1,4 @@
+import { withApi } from "@/lib/api";
 import { db } from "@/lib/db";
 import { captureAlert } from "@/lib/monitoring";
 import { appendOrderNote, markOrderPaid, markPaymentFailed } from "@/lib/orders";
@@ -9,8 +10,11 @@ import { toCents } from "@/lib/utils";
  * We verify signature, (optionally) source IP, server confirmation and amount
  * before marking the order paid.
  */
-export async function POST(req: Request) {
-  const raw = await req.text();
+export const maxDuration = 30;
+
+// Internal errors return 5xx so Payfast retries the notification.
+export const POST = withApi({ name: "webhook.payfast", rateLimit: ["webhook"], maxBodyBytes: 65_536 }, async (req, ctx) => {
+  const raw = ctx.body;
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip");
 
   const check = await verifyPayfastItn(raw, ip);
@@ -20,8 +24,9 @@ export async function POST(req: Request) {
       gateway: "PAYFAST",
       orderId: check.data?.m_payment_id,
       extra: { reason: check.reason, paymentStatus: check.data?.payment_status },
-    }, "warning");
-    return new Response("Invalid ITN", { status: 400 });
+    }, check.retryable ? "error" : "warning");
+    // A check we couldn't complete (Payfast unreachable) is retried; a forged one isn't.
+    return new Response(check.retryable ? "Temporarily unable to verify" : "Invalid ITN", { status: check.retryable ? 503 : 400 });
   }
 
   const { data } = check;
@@ -40,9 +45,8 @@ export async function POST(req: Request) {
       amountCents: toCents(data.amount_gross),
       source: "Payfast",
     });
-    if (!result.updated && result.reason === "amount_mismatch") {
-      console.error(`[payfast] amount mismatch on order ${order.id}`);
-    }
+    // amount_mismatch and duplicate_payment are recorded and alerted inside markOrderPaid.
+    void result;
   } else if (status === "CANCELLED" || status === "FAILED") {
     await markPaymentFailed(order.id, "Payfast", `Payment ${status.toLowerCase()} (pf ${data.pf_payment_id ?? "?"}).`);
   } else {
@@ -50,4 +54,4 @@ export async function POST(req: Request) {
   }
 
   return new Response("OK");
-}
+});

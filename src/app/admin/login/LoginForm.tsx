@@ -4,10 +4,11 @@ import { useActionState, useState } from "react";
 import { Lock } from "lucide-react";
 import { login } from "@/actions/auth";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeAction } from "@/lib/client-fetch";
 import type { ActionState } from "@/types";
 
 export function LoginForm({ next }: { next?: string }) {
-  const [state, action] = useActionState<ActionState, FormData>(login, { ok: false });
+  const [state, action] = useActionState<ActionState, FormData>(safeAction(login), { ok: false });
   // Controlled so React's post-action form reset keeps the email (password still clears).
   const [email, setEmail] = useState("");
   return (

@@ -1,17 +1,11 @@
 import { NextResponse } from "next/server";
+import { withApi } from "@/lib/api";
 import { buildQuote } from "@/lib/pricing";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { getSettings } from "@/lib/settings";
 import { quoteSchema } from "@/lib/validation";
 
-export async function POST(req: Request) {
-  if (!rateLimit(`quote:${await clientIp()}`, 60, 60_000)) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
-  const body = await req.json().catch(() => null);
-  const parsed = quoteSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid basket" }, { status: 400 });
-
-  const quote = await buildQuote(parsed.data, await getSettings());
+export const POST = withApi({ name: "checkout.quote", rateLimit: ["quote"], maxBodyBytes: 8_192, timeoutMs: 10_000 }, async (_req, ctx) => {
+  const input = quoteSchema.parse(ctx.json());
+  const quote = await buildQuote(input, await getSettings());
   return NextResponse.json(quote);
-}
+});

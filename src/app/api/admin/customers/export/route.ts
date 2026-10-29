@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { ApiError, withApi } from "@/lib/api";
 import { getAdminSession } from "@/lib/auth";
 import { getCustomers, toCsv } from "@/lib/crm";
 
-export async function GET(req: Request) {
-  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withApi({ name: "admin.export", rateLimit: ["adminExport"], timeoutMs: 20_000 }, async (req) => {
+  if (!(await getAdminSession())) throw new ApiError(401, "UNAUTHORIZED", "Please sign in again.");
   const segment = new URL(req.url).searchParams.get("segment");
   const customers = (await getCustomers()).filter((c) => !segment || c.segment === segment);
 
@@ -17,4 +18,4 @@ export async function GET(req: Request) {
       "Content-Disposition": `attachment; filename="zen-amour-customers${segment ? `-${segment.toLowerCase()}` : ""}.csv"`,
     },
   });
-}
+});

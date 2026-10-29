@@ -56,6 +56,7 @@ export default async function HomePage() {
       <ValueProps freeShippingThreshold={settings.freeShippingThreshold} rating={avgRating} />
 
       {/* Shop by category */}
+      {categories.length > 0 && (
       <section className="container-luxe py-24">
         <SectionHeading eyebrow="The Collections" title="Curated Rituals" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -80,6 +81,7 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Featured */}
       {featured.length > 0 && (

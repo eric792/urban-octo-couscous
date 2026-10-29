@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Download, Mail, Search } from "lucide-react";
+import { Download, Mail, Search, SearchX, Users } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { MetricsCard } from "@/components/admin/MetricsCard";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { getCustomers, SEGMENT_INFO, type Segment } from "@/lib/crm";
 import { cn, formatDate, formatZAR, whatsappLink } from "@/lib/utils";
 
@@ -84,7 +85,21 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
             </thead>
             <tbody className="divide-y divide-zinc-800/60">
               {customers.length === 0 && (
-                <tr><td colSpan={7} className="py-12 text-center text-zinc-500">No customers match.</td></tr>
+                <tr>
+                  <td colSpan={7}>
+                    {all.length === 0 ? (
+                      <EmptyState variant="admin" icon={Users} title="No customers yet" description="Customers appear here after their first paid order." />
+                    ) : (
+                      <EmptyState
+                        variant="admin"
+                        icon={SearchX}
+                        title={query ? `No customers match “${q.trim()}”` : "No customers in this segment"}
+                        description="Try a different name, email or phone number, or another segment."
+                        action={{ label: "Show all customers", href: "/admin/customers" }}
+                      />
+                    )}
+                  </td>
+                </tr>
               )}
               {customers.map((c) => (
                 <tr key={c.email} className="hover:bg-zinc-900/60">

@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, rateLimit, refundRateLimit, tooManyMessage } from "@/lib/rate-limit";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
 import type { ActionState } from "@/types";
 
@@ -20,9 +20,8 @@ const DUMMY_HASH = "$2b$12$auWVc1w95s/JP8CvgK7xFe20T6mI6wVljnulcLiqQZ.J4jw1CXitC
 
 export async function login(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const ip = await clientIp();
-  if (!rateLimit(`login:${ip}`, 8, 15 * 60_000)) {
-    return { ok: false, message: "Too many sign-in attempts. Please wait 15 minutes." };
-  }
+  const byIp = await rateLimit("login", ip);
+  if (!byIp.success) return { ok: false, message: tooManyMessage(byIp) };
 
   const parsed = schema.safeParse({
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
@@ -31,11 +30,18 @@ export async function login(_prev: ActionState, formData: FormData): Promise<Act
   });
   if (!parsed.success) return { ok: false, message: "Enter your email and password." };
 
+  // Also limit per account, so one email can't be brute-forced from many IPs.
+  const byEmail = await rateLimit("loginPerEmail", parsed.data.email);
+  if (!byEmail.success) return { ok: false, message: tooManyMessage(byEmail) };
+
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
   const valid = await bcrypt.compare(parsed.data.password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !valid || user.role !== "ADMIN") {
     return { ok: false, message: "Incorrect email or password." };
   }
+
+  // Only failed attempts count towards the limits.
+  await Promise.all([refundRateLimit("login", ip, byIp), refundRateLimit("loginPerEmail", parsed.data.email, byEmail)]);
 
   const token = await signSession({ sub: user.id, email: user.email, name: user.fullName, role: "ADMIN" });
   const store = await cookies();

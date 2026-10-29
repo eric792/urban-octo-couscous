@@ -153,7 +153,7 @@ export async function saveProduct(productId: string | null, _prev: ActionState, 
         await tx.productVariant.create({ data: { ...variantData(v, i), productId } });
       }
     }
-  });
+  }, { maxWait: 5_000, timeout: 15_000 });
 
   refresh(productId);
   return { ok: true, message: "Product saved" };

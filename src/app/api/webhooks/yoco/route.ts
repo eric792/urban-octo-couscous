@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { withApi } from "@/lib/api";
 import { db } from "@/lib/db";
 import { captureAlert, logger } from "@/lib/monitoring";
 import { appendOrderNote, markOrderPaid, markPaymentFailed } from "@/lib/orders";
@@ -9,8 +10,11 @@ import { verifyYocoWebhook, type YocoWebhookEvent } from "@/lib/payments/yoco";
  * Marks orders paid on "payment.succeeded" after verifying the signature
  * and that the amount matches the order total.
  */
-export async function POST(req: Request) {
-  const raw = await req.text();
+export const maxDuration = 30;
+
+// Internal errors return 5xx so Yoco retries the delivery.
+export const POST = withApi({ name: "webhook.yoco", rateLimit: ["webhook"], maxBodyBytes: 65_536 }, async (req, ctx) => {
+  const raw = ctx.body;
   if (!verifyYocoWebhook(raw, req.headers)) {
     logger.warn("Yoco webhook rejected: invalid signature or timestamp", { hasSecret: Boolean(process.env.YOCO_WEBHOOK_SECRET) });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
@@ -47,9 +51,8 @@ export async function POST(req: Request) {
         amountCents: event.payload.amount,
         source: "Yoco",
       });
-      if (!result.updated && result.reason === "amount_mismatch") {
-        console.error(`[yoco] amount mismatch on order ${order.id}`);
-      }
+      // amount_mismatch and duplicate_payment are recorded and alerted inside markOrderPaid.
+      void result;
       break;
     }
     case "payment.failed":
@@ -64,4 +67,4 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ received: true });
-}
+});

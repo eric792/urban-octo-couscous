@@ -10,6 +10,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Largest admin form (journal post) is ~50 KB; nothing legitimate needs more.
+    serverActions: { bodySizeLimit: "256kb" },
+  },
   images: {
     // Product photos uploaded by the owner can live on Cloudinary or S3.
     remotePatterns: [

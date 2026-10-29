@@ -4,6 +4,7 @@ import { Footer } from "@/components/storefront/Footer";
 import { Navbar } from "@/components/storefront/Navbar";
 import { WhatsAppButton } from "@/components/storefront/WhatsAppButton";
 import { Pixels } from "@/components/tracking/Pixels";
+import { NetworkStatus } from "@/components/ui/NetworkStatus";
 import { getSettings, toPublicSettings } from "@/lib/settings";
 
 export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default async function StorefrontLayout({ children }: { children: React.R
       </div>
       <CartDrawer freeShippingThreshold={settings.freeShippingThreshold} />
       <WhatsAppButton number={settings.whatsappNumber} />
+      <NetworkStatus />
     </CartProvider>
   );
 }

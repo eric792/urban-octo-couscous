@@ -4,6 +4,7 @@ import { Eye, EyeOff, Plus, Search, Star } from "lucide-react";
 import { toggleProductActive, updateStock } from "@/actions/admin-products";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ProductImage } from "@/components/storefront/ProductImage";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { db } from "@/lib/db";
@@ -70,7 +71,15 @@ export default async function AdminInventoryPage({ searchParams }: { searchParam
       </div>
 
       <div className="space-y-3">
-        {products.length === 0 && <p className="admin-card p-10 text-center text-zinc-500">No products match.</p>}
+        {products.length === 0 && (
+          <div className="admin-card">
+            {q || category || filter ? (
+              <EmptyState variant="admin" title="No products match" description="Try another search or filter." action={{ label: "Show all products", href: "/admin/inventory" }} />
+            ) : (
+              <EmptyState variant="admin" title="No products yet" description="Add your first product to start selling." action={{ label: "New product", href: "/admin/inventory/new" }} />
+            )}
+          </div>
+        )}
         {products.map((p) => (
           <div key={p.id} className={cn("admin-card flex flex-col gap-5 p-4 md:flex-row md:items-start", !p.isActive && "opacity-60")}>
             <div className="flex flex-1 items-start gap-4">

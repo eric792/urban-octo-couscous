@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { ProductImage } from "@/components/storefront/ProductImage";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { getPublishedPosts } from "@/lib/catalog";
 import { formatDate } from "@/lib/utils";
 
@@ -20,7 +22,15 @@ export default async function BlogPage() {
       <h1 className="mt-3 font-serif text-5xl font-light text-white sm:text-6xl">Rituals &amp; Guides</h1>
       <p className="mt-4 max-w-xl text-zinc-400">Thoughtful reading on scent, skin and slowing down.</p>
 
-      {posts.length === 0 && <p className="mt-16 text-zinc-500">New stories are on their way.</p>}
+      {posts.length === 0 && (
+        <EmptyState
+          className="mt-14"
+          icon={BookOpen}
+          title="New stories are on their way"
+          description="Our first guides to scent, skin and slowing down are being written."
+          action={{ label: "Shop the collection", href: "/shop" }}
+        />
+      )}
 
       {lead && (
         <Link href={`/blog/${lead.slug}`} className="group mt-14 grid items-center gap-10 lg:grid-cols-2">

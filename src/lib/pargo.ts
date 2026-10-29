@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { fetchWithTimeout, TIMEOUTS } from "@/lib/http";
 import { SETTINGS_ID } from "@/lib/settings";
 import type { PickupPoint } from "@/types";
 
@@ -46,11 +47,11 @@ async function getAccessToken(cfg: PargoConfig): Promise<string> {
   const key = `${cfg.baseUrl}|${cfg.username}`;
   if (tokenCache && tokenCache.key === key && tokenCache.expiresAt > Date.now()) return tokenCache.token;
 
-  const res = await fetch(`${cfg.baseUrl}/auth`, {
+  const res = await fetchWithTimeout("Pargo", `${cfg.baseUrl}/auth`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ username: cfg.username, password: cfg.password }),
-    cache: "no-store",
+    timeoutMs: TIMEOUTS.pargo,
   });
   const data = (await res.json().catch(() => ({}))) as { access_token?: string; expires_in?: number };
   if (!res.ok || !data.access_token) throw new Error(`Pargo authentication failed (${res.status})`);
@@ -64,7 +65,7 @@ async function getAccessToken(cfg: PargoConfig): Promise<string> {
 
 async function pargoFetch(cfg: PargoConfig, path: string, init: RequestInit = {}) {
   const token = await getAccessToken(cfg);
-  const res = await fetch(`${cfg.baseUrl}${path}`, {
+  const res = await fetchWithTimeout("Pargo", `${cfg.baseUrl}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -72,7 +73,7 @@ async function pargoFetch(cfg: PargoConfig, path: string, init: RequestInit = {}
       Accept: "application/json",
       ...init.headers,
     },
-    cache: "no-store",
+    timeoutMs: TIMEOUTS.pargo,
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`Pargo API ${path} failed (${res.status})`);

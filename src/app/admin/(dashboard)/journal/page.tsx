@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/utils";
 
@@ -26,7 +27,17 @@ export default async function AdminJournalPage() {
           </thead>
           <tbody className="divide-y divide-zinc-800/60">
             {posts.length === 0 && (
-              <tr><td colSpan={4} className="py-12 text-center text-zinc-500">No posts yet.</td></tr>
+              <tr>
+                <td colSpan={4}>
+                  <EmptyState
+                    variant="admin"
+                    icon={BookOpen}
+                    title="No posts yet"
+                    description="Guides on scent, skincare and rituals build search traffic over time."
+                    action={{ label: "Write your first guide", href: "/admin/journal/new" }}
+                  />
+                </td>
+              </tr>
             )}
             {posts.map((p) => (
               <tr key={p.id} className="hover:bg-zinc-900/60">

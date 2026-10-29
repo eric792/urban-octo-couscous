@@ -3,10 +3,11 @@
 import { useActionState, useState } from "react";
 import { subscribeToNewsletter } from "@/actions/newsletter";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeAction } from "@/lib/client-fetch";
 import type { ActionState } from "@/types";
 
 export function NewsletterForm({ source = "homepage" }: { source?: string }) {
-  const [state, action] = useActionState<ActionState, FormData>(subscribeToNewsletter, { ok: false });
+  const [state, action] = useActionState<ActionState, FormData>(safeAction(subscribeToNewsletter), { ok: false });
   const [email, setEmail] = useState("");
 
   if (state.ok) {

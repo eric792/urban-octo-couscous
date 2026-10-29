@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Check } from "lucide-react";
 import { trackOrder, type TrackResult } from "@/actions/track-order";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeAction } from "@/lib/client-fetch";
 import { DELIVERY_OPTIONS, STATUS_LABELS } from "@/lib/constants";
 import { cn, formatDate, formatZAR } from "@/lib/utils";
 import type { OrderStatus } from "@/types";
@@ -17,7 +18,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 export function TrackOrderForm() {
-  const [state, action] = useActionState<TrackResult, FormData>(trackOrder, { ok: false });
+  const [state, action] = useActionState<TrackResult, FormData>(safeAction(trackOrder), { ok: false });
   const [orderNumber, setOrderNumber] = useState("");
   const [email, setEmail] = useState("");
   const order = state.order;

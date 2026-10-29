@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, SearchX, ShoppingCart } from "lucide-react";
 import { updateOrderStatus } from "@/actions/admin-orders";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { startOfSastToday } from "@/lib/analytics";
 import { DELIVERY_OPTIONS, PAID_STATUSES, STATUS_LABELS } from "@/lib/constants";
@@ -115,7 +116,25 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             <tbody className="divide-y divide-zinc-800/60 text-sm">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-500">No matching orders found.</td>
+                  <td colSpan={7}>
+                    {q || status !== "ALL" ? (
+                      <EmptyState
+                        variant="admin"
+                        icon={SearchX}
+                        title={q ? `No orders match “${q}”` : "No orders with this status"}
+                        description="Try an order number, customer name or email — or clear the filters."
+                        action={{ label: "Clear filters", href: "/admin/orders" }}
+                      />
+                    ) : (
+                      <EmptyState
+                        variant="admin"
+                        icon={ShoppingCart}
+                        title="No orders yet"
+                        description="Orders appear here the moment a customer checks out."
+                        action={{ label: "View store", href: "/" }}
+                      />
+                    )}
+                  </td>
                 </tr>
               ) : (
                 orders.map((order) => {

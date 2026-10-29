@@ -2,6 +2,7 @@
 
 import { startTransition, useActionState, useEffect, useRef } from "react";
 import { PendingContext } from "@/components/ui/pending-context";
+import { safeAction } from "@/lib/client-fetch";
 import { cn } from "@/lib/utils";
 import type { ActionState } from "@/types";
 
@@ -25,7 +26,7 @@ export function ActionForm({
   messageClassName?: string;
   resetOnSuccess?: boolean;
 }) {
-  const [state, formAction, pending] = useActionState(action, { ok: false });
+  const [state, formAction, pending] = useActionState(safeAction(action), { ok: false });
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

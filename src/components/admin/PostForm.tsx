@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { savePost } from "@/actions/admin-blog";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeAction } from "@/lib/client-fetch";
 import { slugify } from "@/lib/utils";
 import type { ActionState } from "@/types";
 
@@ -17,7 +18,7 @@ export interface PostFormValues {
 }
 
 export function PostForm({ initial, saved }: { initial: PostFormValues; saved?: boolean }) {
-  const [state, action] = useActionState<ActionState, FormData>(savePost.bind(null, initial.id), {
+  const [state, action] = useActionState<ActionState, FormData>(safeAction(savePost.bind(null, initial.id)), {
     ok: Boolean(saved),
     message: saved ? "Post created" : undefined,
   });

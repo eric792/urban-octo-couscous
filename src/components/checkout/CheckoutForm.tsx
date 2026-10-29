@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CreditCard, Landmark, Loader2, Lock, ShieldCheck, Tag, Wallet } from "lucide-react";
+import { AlertTriangle, CreditCard, Landmark, Loader2, Lock, RefreshCw, ShieldCheck, Tag, Wallet } from "lucide-react";
 import PargoPickupSelector from "@/components/checkout/PargoPickupSelector";
 import { useCart } from "@/components/storefront/CartProvider";
 import { ProductImage } from "@/components/storefront/ProductImage";
+import { fetchJson, newIdempotencyKey } from "@/lib/client-fetch";
 import { DELIVERY_OPTIONS, PROVINCES } from "@/lib/constants";
 import { trackInitiateCheckout } from "@/lib/tracking/pixels";
 import { cn, formatZAR } from "@/lib/utils";
@@ -37,10 +38,16 @@ export function CheckoutForm({ settings, gateways }: Props) {
   const [appliedCode, setAppliedCode] = useState<string | undefined>(undefined);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoting, setQuoting] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [quoteAttempt, setQuoteAttempt] = useState(0);
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const trackedRef = useRef(false);
+  // Duplicate-payment guards: one in-flight submit, and one idempotency key per
+  // distinct checkout payload (a retry of the same payload reuses its key).
+  const submittingRef = useRef(false);
+  const attemptRef = useRef<{ key: string; payload: string } | null>(null);
 
   const cartPayload = items.map((i) => ({ variantId: i.variantId, quantity: i.quantity }));
   const cartKey = JSON.stringify(cartPayload);
@@ -51,26 +58,26 @@ export function CheckoutForm({ settings, gateways }: Props) {
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       setQuoting(true);
-      try {
-        const res = await fetch("/api/checkout/quote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: cartPayload, deliveryMethod, discountCode: appliedCode }),
-          signal: controller.signal,
-        });
-        if (res.ok) setQuote((await res.json()) as Quote);
-      } catch {
-        /* aborted or offline */
-      } finally {
-        setQuoting(false);
+      const result = await fetchJson<Quote>("/api/checkout/quote", {
+        body: { items: cartPayload, deliveryMethod, discountCode: appliedCode },
+        timeoutMs: 10_000,
+        retries: 2, // a quote is read-only, so retrying is always safe
+        signal: controller.signal,
+      });
+      if (result.ok) {
+        setQuote(result.data);
+        setQuoteError(null);
+      } else if (result.code !== "ABORTED") {
+        setQuoteError(result.message);
       }
+      if (!controller.signal.aborted) setQuoting(false);
     }, 200);
     return () => {
       controller.abort();
       clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, cartKey, deliveryMethod, appliedCode]);
+  }, [ready, cartKey, deliveryMethod, appliedCode, quoteAttempt]);
 
   useEffect(() => {
     if (!ready || trackedRef.current || items.length === 0) return;
@@ -102,54 +109,77 @@ export function CheckoutForm({ settings, gateways }: Props) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!gateway) return;
+    if (!gateway || submittingRef.current) return; // ignore double clicks / double Enter
+    submittingRef.current = true;
     setSubmitting(true);
     setFormError(null);
     setErrors({});
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cartPayload,
-          deliveryMethod,
-          discountCode: appliedCode,
-          customer,
-          gateway,
-          address: deliveryMethod === "PARGO_PICKUP_POINT" ? undefined : address,
-          pickupPoint: deliveryMethod === "PARGO_PICKUP_POINT" ? pickupPoint ?? undefined : undefined,
-          notes: notes || undefined,
-          marketingOptIn,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setErrors(data.errors ?? {});
-        setFormError(data.message ?? "Please check the highlighted fields.");
-        setSubmitting(false);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        return;
-      }
-      if (data.type === "payfast") {
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = data.action;
-        for (const [name, value] of Object.entries(data.fields as Record<string, string>)) {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = name;
-          input.value = value;
-          form.appendChild(input);
-        }
-        document.body.appendChild(form);
-        form.submit();
-        return;
-      }
-      window.location.href = data.url;
-    } catch {
-      setFormError("We couldn't reach our payment server. Please check your connection and try again.");
-      setSubmitting(false);
+
+    const payload = {
+      items: cartPayload,
+      deliveryMethod,
+      discountCode: appliedCode,
+      customer,
+      gateway,
+      address: deliveryMethod === "PARGO_PICKUP_POINT" ? undefined : address,
+      pickupPoint: deliveryMethod === "PARGO_PICKUP_POINT" ? pickupPoint ?? undefined : undefined,
+      notes: notes || undefined,
+      marketingOptIn,
+    };
+    const payloadKey = JSON.stringify(payload);
+    if (!attemptRef.current || attemptRef.current.payload !== payloadKey) {
+      attemptRef.current = { key: newIdempotencyKey(), payload: payloadKey };
     }
+
+    const fail = (message: string, fieldErrors: Errors = {}) => {
+      setErrors(fieldErrors);
+      setFormError(message);
+      setSubmitting(false);
+      submittingRef.current = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    type CheckoutResponse =
+      | { ok: true; type: "redirect"; url: string; alreadyPaid?: boolean }
+      | { ok: true; type: "payfast"; action: string; fields: Record<string, string> };
+
+    // Safe to retry: the server de-duplicates on the Idempotency-Key.
+    const send = () =>
+      fetchJson<CheckoutResponse>("/api/checkout", {
+        body: payload,
+        headers: { "Idempotency-Key": attemptRef.current!.key },
+        timeoutMs: 30_000,
+        retries: 1,
+      });
+
+    let result = await send();
+    if (!result.ok && result.data?.retryWithNewKey) {
+      attemptRef.current = { key: newIdempotencyKey(), payload: payloadKey };
+      result = await send();
+    }
+
+    if (!result.ok) {
+      fail(result.message, (result.data?.errors as Errors | undefined) ?? {});
+      return;
+    }
+
+    const data = result.data;
+    if (data.type === "payfast") {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = data.action;
+      for (const [name, value] of Object.entries(data.fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
+      return; // keep the button locked while the browser leaves the page
+    }
+    window.location.href = data.url;
   };
 
   const applyCode = () => {
@@ -411,11 +441,23 @@ export function CheckoutForm({ settings, gateways }: Props) {
           <p className="text-right text-[11px] text-zinc-500">Prices in ZAR, VAT included where applicable</p>
         </dl>
 
+        {quoteError && (
+          <div className="flex items-start justify-between gap-3 border border-rose-500/40 bg-rose-500/10 p-3 text-xs text-rose-200" role="alert">
+            <span className="flex gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              {quoteError}
+            </span>
+            <button type="button" onClick={() => setQuoteAttempt((n) => n + 1)} className="inline-flex shrink-0 items-center gap-1 font-semibold text-rose-100 underline-offset-2 hover:underline">
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Retry
+            </button>
+          </div>
+        )}
+
         {quote?.issues.map((issue) => (
           <p key={issue} className="border border-rose-500/40 bg-rose-500/10 p-3 text-xs text-rose-200">{issue}</p>
         ))}
 
-        <button type="submit" disabled={submitting || !gateway || !quote || blocked} className="btn-gold w-full py-4">
+        <button type="submit" disabled={submitting || !gateway || !quote || blocked || Boolean(quoteError) || quoting} aria-busy={submitting} className="btn-gold w-full py-4">
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
           {submitting ? "Securing your order…" : gateway === "EFT" ? "Place order" : `Pay ${quote ? formatZAR(quote.total) : ""}`}
         </button>

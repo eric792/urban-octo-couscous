@@ -29,7 +29,7 @@ export function sentryEnvironment(): string {
 export const TRACES_SAMPLE_RATE = process.env.NODE_ENV === "development" ? 1.0 : 0.1;
 
 interface ErrorContext {
-  area: "checkout" | "payfast" | "yoco" | "pargo" | "email" | "orders" | "admin";
+  area: "checkout" | "payfast" | "yoco" | "pargo" | "email" | "orders" | "admin" | "api" | "rate-limit";
   gateway?: string;
   orderId?: string;
   orderNumber?: string;

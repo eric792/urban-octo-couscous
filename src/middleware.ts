@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   if (session?.role === "ADMIN") return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ ok: false, code: "UNAUTHORIZED", message: "Please sign in again." }, { status: 401 });
   }
   const url = req.nextUrl.clone();
   url.pathname = "/admin/login";

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, rateLimit, tooManyMessage } from "@/lib/rate-limit";
 import { toNumber } from "@/lib/utils";
 import type { DeliveryMethod, OrderStatus } from "@/types";
 
@@ -28,9 +28,8 @@ const schema = z.object({
 });
 
 export async function trackOrder(_prev: TrackResult, formData: FormData): Promise<TrackResult> {
-  if (!rateLimit(`track:${await clientIp()}`, 10, 60_000)) {
-    return { ok: false, message: "Too many lookups — please wait a minute." };
-  }
+  const limited = await rateLimit("trackOrder", await clientIp());
+  if (!limited.success) return { ok: false, message: tooManyMessage(limited) };
   const parsed = schema.safeParse({
     orderNumber: formData.get("orderNumber"),
     email: String(formData.get("email") ?? "").trim().toLowerCase(),

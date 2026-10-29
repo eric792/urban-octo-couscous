@@ -125,24 +125,28 @@ model ProductVariant {
 }
 
 model Order {
-  id             String         @id @default(cuid())
-  orderNumber    String         @unique
-  userId         String?
-  user           User?          @relation(fields: [userId], references: [id])
-  guestEmail     String?
-  customerName   String
-  customerEmail  String
-  customerPhone  String?
-  status         OrderStatus    @default(PENDING_PAYMENT)
-  subtotal       Decimal        @db.Decimal(10, 2)
-  discountAmount Decimal        @default(0) @db.Decimal(10, 2)
-  discountCode   String?
-  shippingCost   Decimal        @db.Decimal(10, 2)
-  totalAmount    Decimal        @db.Decimal(10, 2)
-  gateway        PaymentGateway
-  gatewayTxId    String? // Yoco payment id / Payfast pf_payment_id
-  gatewayRef     String? // Yoco checkout id
-  paidAt         DateTime?
+  id                 String         @id @default(cuid())
+  orderNumber        String         @unique
+  userId             String?
+  user               User?          @relation(fields: [userId], references: [id])
+  guestEmail         String?
+  customerName       String
+  customerEmail      String
+  customerPhone      String?
+  status             OrderStatus    @default(PENDING_PAYMENT)
+  subtotal           Decimal        @db.Decimal(10, 2)
+  discountAmount     Decimal        @default(0) @db.Decimal(10, 2)
+  discountCode       String?
+  shippingCost       Decimal        @db.Decimal(10, 2)
+  totalAmount        Decimal        @db.Decimal(10, 2)
+  gateway            PaymentGateway
+  gatewayTxId        String?        @unique // Yoco payment id / Payfast pf_payment_id
+  gatewayRef         String?        @unique // Yoco checkout id
+  gatewayRedirectUrl String? // hosted payment page, reused if the shopper retries
+  // Duplicate-payment protection: one order per checkout attempt.
+  idempotencyKey     String?        @unique
+  requestHash        String? // fingerprint of cart + delivery + customer + gateway
+  paidAt             DateTime?
 
   // Logistics & Pargo
   deliveryMethod   DeliveryMethod @default(PARGO_PICKUP_POINT)
@@ -159,6 +163,7 @@ model Order {
   updatedAt DateTime    @updatedAt
 
   @@index([status])
+  @@index([customerEmail, requestHash])
   @@index([customerEmail])
   @@index([createdAt])
 }

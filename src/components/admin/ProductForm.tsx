@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { saveProduct } from "@/actions/admin-products";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { safeAction } from "@/lib/client-fetch";
 import { slugify } from "@/lib/utils";
 import type { ActionState } from "@/types";
 
@@ -35,7 +36,7 @@ export function ProductForm({
   categories: { id: string; name: string }[];
   saved?: boolean;
 }) {
-  const [state, action] = useActionState<ActionState, FormData>(saveProduct.bind(null, initial.id), {
+  const [state, action] = useActionState<ActionState, FormData>(safeAction(saveProduct.bind(null, initial.id)), {
     ok: Boolean(saved),
     message: saved ? "Product created" : undefined,
   });

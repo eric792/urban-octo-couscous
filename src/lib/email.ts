@@ -1,5 +1,6 @@
 import type { Order, OrderItem } from "@prisma/client";
 import { DELIVERY_OPTIONS, STORE_NAME } from "@/lib/constants";
+import { fetchWithTimeout, TIMEOUTS } from "@/lib/http";
 import { captureError } from "@/lib/monitoring";
 import { absoluteUrl, formatZAR } from "@/lib/utils";
 
@@ -21,7 +22,8 @@ async function sendEmail(to: string, subject: string, html: string) {
     return;
   }
   try {
-    const res = await fetch("https://api.resend.com/emails", {
+    const res = await fetchWithTimeout("Resend", "https://api.resend.com/emails", {
+      timeoutMs: TIMEOUTS.resend,
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, subject, html }),

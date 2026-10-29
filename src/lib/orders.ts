@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { sendOrderConfirmation } from "@/lib/email";
@@ -19,7 +20,29 @@ export async function appendOrderNote(orderId: string, note: string) {
 
 export type MarkPaidResult =
   | { updated: true }
-  | { updated: false; reason: "not_found" | "already_processed" | "amount_mismatch" };
+  | { updated: false; reason: "not_found" | "already_processed" | "amount_mismatch" | "duplicate_payment" };
+
+/** Transactions touching stock must finish quickly or roll back. */
+const TX_OPTIONS = { maxWait: 5_000, timeout: 10_000 };
+
+async function flagDuplicatePayment(
+  order: { id: string; orderNumber: string; gateway: string; gatewayTxId: string | null },
+  incomingTxId: string,
+  source: string,
+) {
+  captureAlert("Duplicate payment received — refund required", {
+    area: "orders",
+    gateway: order.gateway,
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    extra: { existingTxId: order.gatewayTxId, duplicateTxId: incomingTxId, source },
+  });
+  metrics.count("payment.duplicate", 1, { attributes: { gateway: order.gateway } });
+  await appendOrderNote(
+    order.id,
+    `DUPLICATE PAYMENT: ${source} reported a second payment (ref ${incomingTxId}) for an order already paid${order.gatewayTxId ? ` with ref ${order.gatewayTxId}` : ""}. Stock was not deducted again — refund the duplicate in the ${order.gateway} dashboard.`,
+  );
+}
 
 /**
  * Marks an order as paid exactly once: moves it to NEW, deducts stock and
@@ -47,33 +70,56 @@ export async function markOrderPaid(
     return { updated: false, reason: "amount_mismatch" };
   }
 
-  const updated = await db.$transaction(async (tx) => {
-    const res = await tx.order.updateMany({
-      where: { id: orderId, paidAt: null, status: { in: ["PENDING_PAYMENT", "CANCELLED"] } },
-      data: {
-        status: "NEW",
-        paidAt: new Date(),
-        gatewayTxId: opts.gatewayTxId ?? undefined,
-      },
-    });
-    if (res.count === 0) return false;
-
-    for (const item of order.items) {
-      await tx.productVariant.update({
-        where: { id: item.variantId },
-        data: { stock: { decrement: item.quantity } },
+  let updated: boolean;
+  try {
+    updated = await db.$transaction(async (tx) => {
+      const res = await tx.order.updateMany({
+        where: { id: orderId, paidAt: null, status: { in: ["PENDING_PAYMENT", "CANCELLED"] } },
+        data: {
+          status: "NEW",
+          paidAt: new Date(),
+          gatewayTxId: opts.gatewayTxId ?? undefined,
+        },
       });
-    }
-    if (order.discountCode) {
-      await tx.discountCode.updateMany({
-        where: { code: order.discountCode },
-        data: { usedCount: { increment: 1 } },
-      });
-    }
-    return true;
-  });
+      if (res.count === 0) return false;
 
-  if (!updated) return { updated: false, reason: "already_processed" };
+      for (const item of order.items) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+      if (order.discountCode) {
+        await tx.discountCode.updateMany({
+          where: { code: order.discountCode },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+      return true;
+    }, TX_OPTIONS);
+  } catch (err) {
+    // The gateway reference is already attached to a different order.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002" && opts.gatewayTxId) {
+      await flagDuplicatePayment(order, opts.gatewayTxId, opts.source);
+      return { updated: false, reason: "duplicate_payment" };
+    }
+    throw err;
+  }
+
+  if (!updated) {
+    // Webhook retries carry the same reference; a different one is a second payment.
+    const current = await db.order.findUnique({ where: { id: orderId }, select: { paidAt: true, gatewayTxId: true } });
+    if (current?.paidAt && opts.gatewayTxId) {
+      if (!current.gatewayTxId) {
+        // Paid manually first (e.g. admin confirmation) — just record the gateway reference.
+        await db.order.update({ where: { id: orderId }, data: { gatewayTxId: opts.gatewayTxId } }).catch(() => undefined);
+      } else if (current.gatewayTxId !== opts.gatewayTxId) {
+        await flagDuplicatePayment({ ...order, gatewayTxId: current.gatewayTxId }, opts.gatewayTxId, opts.source);
+        return { updated: false, reason: "duplicate_payment" };
+      }
+    }
+    return { updated: false, reason: "already_processed" };
+  }
 
   await appendOrderNote(orderId, `${opts.source}: payment confirmed${opts.gatewayTxId ? ` (ref ${opts.gatewayTxId})` : ""}.`);
   revalidateTag("catalog"); // stock levels changed

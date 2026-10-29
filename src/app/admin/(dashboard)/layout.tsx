@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { NetworkStatus } from "@/components/ui/NetworkStatus";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -18,6 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <main className="min-w-0 flex-1 p-5 sm:p-8 lg:p-10">
         <div className="mx-auto max-w-7xl">{children}</div>
       </main>
+      <NetworkStatus />
     </div>
   );
 }

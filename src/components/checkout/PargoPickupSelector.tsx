@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, Loader2, Map as MapIcon, MapPin, Store, X } from "lucide-react";
+import { fetchJson } from "@/lib/client-fetch";
 import { cn } from "@/lib/utils";
 import type { PickupPoint } from "@/types";
 
@@ -77,18 +78,18 @@ export default function PargoPickupSelector({ onSelectPoint, selectedPoint, mapT
     }
     setLoading(true);
     setMessage(null);
-    try {
-      const res = await fetch(`/api/pargo/pickup-points?search=${encodeURIComponent(query.trim())}`);
-      const data = (await res.json()) as { pickupPoints?: PickupPoint[]; source?: "pargo" | "demo"; error?: string };
-      if (!res.ok) throw new Error(data.error || "Search failed");
-      setPoints(data.pickupPoints ?? []);
-      setSource(data.source ?? null);
-      if (!data.pickupPoints?.length) setMessage("No pickup points found there — try a nearby suburb or city.");
-    } catch (err) {
-      setMessage((err as Error).message || "Couldn't load Pargo points. Please try again.");
-    } finally {
-      setLoading(false);
+    const result = await fetchJson<{ pickupPoints?: PickupPoint[]; source?: "pargo" | "demo" }>(
+      `/api/pargo/pickup-points?search=${encodeURIComponent(query.trim())}`,
+      { timeoutMs: 15_000, retries: 1 },
+    );
+    setLoading(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
     }
+    setPoints(result.data.pickupPoints ?? []);
+    setSource(result.data.source ?? null);
+    if (!result.data.pickupPoints?.length) setMessage("No pickup points found there — try a nearby suburb or city.");
   };
 
   return (

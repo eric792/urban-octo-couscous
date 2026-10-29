@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { clientIp, rateLimit, tooManyMessage } from "@/lib/rate-limit";
 import type { ActionState } from "@/types";
 
 const schema = z.object({
@@ -11,9 +11,8 @@ const schema = z.object({
 });
 
 export async function subscribeToNewsletter(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  if (!rateLimit(`newsletter:${await clientIp()}`, 5, 60_000)) {
-    return { ok: false, message: "Too many attempts — please try again in a minute." };
-  }
+  const limited = await rateLimit("newsletter", await clientIp());
+  if (!limited.success) return { ok: false, message: tooManyMessage(limited) };
   const parsed = schema.safeParse({
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
     source: String(formData.get("source") ?? "website"),

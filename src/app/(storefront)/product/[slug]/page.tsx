@@ -154,10 +154,13 @@ export default async function ProductPage({ params }: { params: Params }) {
                 <p className="mt-2 text-sm text-zinc-500">Based on {product.reviewCount} verified reviews</p>
               </div>
             ) : (
-              <p className="mt-6 text-sm text-zinc-500">No reviews yet.</p>
+              <p className="mt-6 text-sm text-zinc-500">No reviews yet — this piece is new to the collection.</p>
             )}
           </div>
           <div className="divide-y divide-ink-600">
+            {product.reviews.length === 0 && (
+              <p className="py-6 text-zinc-500">Be among the first to wear it. Reviews from verified buyers will appear here.</p>
+            )}
             {product.reviews.map((r) => (
               <article key={r.id} className="py-6 first:pt-0">
                 <div className="flex items-center justify-between">

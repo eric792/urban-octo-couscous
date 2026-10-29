@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
+import { withApi } from "@/lib/api";
 import { db } from "@/lib/db";
 import { appendOrderNote } from "@/lib/orders";
 
@@ -25,14 +26,14 @@ function pick(obj: Record<string, unknown>, keys: string[]): string | null {
   return null;
 }
 
-export async function POST(req: Request) {
+export const POST = withApi({ name: "webhook.pargo", rateLimit: ["webhook"], maxBodyBytes: 65_536 }, async (req, ctx) => {
   const url = new URL(req.url);
   if (!secretMatches(url.searchParams.get("secret") ?? req.headers.get("x-pargo-secret"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const body = ctx.json<Record<string, unknown> | null>();
+  if (!body || typeof body !== "object") return NextResponse.json({ ok: false, code: "BAD_REQUEST", message: "Expected a JSON object" }, { status: 400 });
 
   const nested = [body, body.data, (body.data as Record<string, unknown> | undefined)?.attributes].filter(
     (v): v is Record<string, unknown> => Boolean(v) && typeof v === "object",
@@ -77,4 +78,4 @@ export async function POST(req: Request) {
   await appendOrderNote(order.id, `Pargo: ${status}${nextStatus ? ` → ${nextStatus}` : ""}`);
 
   return NextResponse.json({ received: true, matched: true });
-}
+});
