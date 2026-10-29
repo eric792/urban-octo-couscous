@@ -65,8 +65,20 @@ export function generateOrderNumber(): string {
   return `ZA-${code}`;
 }
 
+/**
+ * Public URL of the store, used for payment return URLs, webhooks and SEO.
+ * On Vercel, previews use their own deployment URL (so payments come back to
+ * the preview), and production falls back to the project's main domain when
+ * APP_URL isn't set.
+ */
 export function getAppUrl(): string {
-  return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const vercelUrl = (host: string | undefined) => (host ? `https://${host}` : undefined);
+  const url =
+    (process.env.VERCEL_ENV === "preview" ? vercelUrl(process.env.VERCEL_URL) : undefined) ||
+    process.env.APP_URL ||
+    vercelUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL) ||
+    "http://localhost:3000";
+  return url.replace(/\/$/, "");
 }
 
 export function absoluteUrl(path: string): string {

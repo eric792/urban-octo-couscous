@@ -22,7 +22,14 @@ export const SENTRY_DATA_COLLECTION = {
 } satisfies NonNullable<Parameters<typeof Sentry.init>[0]>["dataCollection"];
 
 export function sentryEnvironment(): string {
-  return process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development";
+  // On Vercel this is "production" or "preview", so preview errors don't mix with live ones.
+  return (
+    process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
+    process.env.NEXT_PUBLIC_VERCEL_ENV ||
+    process.env.VERCEL_ENV ||
+    process.env.NODE_ENV ||
+    "development"
+  );
 }
 
 /** 100% of traces in development, 10% in production (adjust to your traffic). */

@@ -1,8 +1,11 @@
 // Zen Amour — core database schema (PostgreSQL via Prisma)
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection for the app (serverless-safe).
+  url       = env("DATABASE_URL")
+  // Direct connection for migrations. Locally it can be the same as DATABASE_URL.
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 generator client {

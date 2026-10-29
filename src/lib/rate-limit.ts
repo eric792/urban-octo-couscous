@@ -4,7 +4,8 @@ import { fetchWithTimeout, TIMEOUTS } from "@/lib/http";
 /*
  * Rate limiting.
  *
- * - With UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN set, counters live in
+ * - With UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (or Vercel's KV_REST_API_URL +
+ *   KV_REST_API_TOKEN) set, counters live in
  *   Redis, so limits hold across every server / serverless instance.
  * - Without them, an in-memory counter protects each instance (fine for a
  *   single server and for development).
@@ -60,18 +61,27 @@ function memoryHit(key: string, policy: RateLimitPolicy, now: number): { count: 
   return bucket;
 }
 
+/**
+ * Upstash REST credentials. Vercel's Upstash integration may name them
+ * KV_REST_API_URL / KV_REST_API_TOKEN instead, so accept either.
+ */
+function redisConfig(): { url: string; token: string } | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
+}
+
 async function redisHit(key: string, policy: RateLimitPolicy, now: number) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null;
+  const redis = redisConfig();
+  if (!redis) return null;
 
   // Fixed window: one key per window, expiring with it.
   const windowStart = Math.floor(now / policy.windowMs) * policy.windowMs;
   const redisKey = `za:rl:${key}:${windowStart}`;
   try {
-    const res = await fetchWithTimeout("Redis", `${url.replace(/\/$/, "")}/pipeline`, {
+    const res = await fetchWithTimeout("Redis", `${redis.url}/pipeline`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${redis.token}`, "Content-Type": "application/json" },
       body: JSON.stringify([
         ["INCR", redisKey],
         ["PEXPIRE", redisKey, String(policy.windowMs), "NX"],
@@ -117,15 +127,14 @@ export async function refundRateLimit(name: RateLimitName, identifier: string, r
   const bucket = memory.get(key);
   if (bucket && bucket.resetAt === result.reset && bucket.count > 0) bucket.count -= 1;
 
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return;
+  const redis = redisConfig();
+  if (!redis) return;
   const redisKey = `za:rl:${key}:${result.reset - policy.windowMs}`;
   try {
     // Only decrement a window that still exists, so a refund never creates a key.
-    await fetchWithTimeout("Redis", `${url.replace(/\/$/, "")}/pipeline`, {
+    await fetchWithTimeout("Redis", `${redis.url}/pipeline`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${redis.token}`, "Content-Type": "application/json" },
       body: JSON.stringify([
         ["EVAL", "if (tonumber(redis.call('GET', KEYS[1]) or '0') > 0) then return redis.call('DECR', KEYS[1]) end return 0", "1", redisKey],
       ]),

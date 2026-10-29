@@ -32,7 +32,7 @@ Requires Node 20+ and PostgreSQL.
 
 ```bash
 npm install
-cp .env.example .env        # then fill in DATABASE_URL, AUTH_SECRET, SEED_ADMIN_PASSWORD
+cp .env.example .env        # then fill in DATABASE_URL (+ DATABASE_URL_UNPOOLED), AUTH_SECRET, SEED_ADMIN_PASSWORD
 npm run db:migrate          # creates the tables
 npm run db:seed             # catalogue, journal, discount codes, admin user (+ demo data)
 npm run dev
@@ -42,11 +42,18 @@ Open http://localhost:3000 and http://localhost:3000/admin (sign in with `SEED_A
 
 Generate `AUTH_SECRET` with `openssl rand -base64 48`.
 
-## Deploy (e.g. Vercel + Neon / Supabase Postgres)
+## Deploy on Vercel
 
-1. Create a Postgres database and set `DATABASE_URL`.
-2. Set every variable from `.env.example` in your host. `APP_URL` must be your public `https://` domain.
-3. Build command: `npm run build`. Run `npm run db:deploy` once per release to apply migrations, and `npm run db:seed` the first time (with `SEED_DEMO_DATA="false"` for a live store).
+Step-by-step guide: [`docs/deploy-vercel.md`](docs/deploy-vercel.md). In short:
+
+1. Import the GitHub repository at vercel.com/new and paste the environment variables.
+2. In the project's **Storage** tab, add **Neon** Postgres and **Upstash** Redis, both in Frankfurt.
+3. Redeploy. `vercel.json` runs `npm run vercel-build`:
+   - It applies migrations on every production deploy.
+   - On the first deploy it also loads the catalogue and the admin account (`SEED_ADMIN_PASSWORD`).
+   - Server code runs in Frankfurt (`fra1`), next to the database.
+
+Other hosts: set `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (direct) and `APP_URL`. Then build with `npm run build`, run `npm run db:deploy` on each release, and run `npm run db:seed` once (with `SEED_DEMO_DATA="false"` for a live store).
 
 ## Payments
 
@@ -144,7 +151,7 @@ The client IP is read from `x-real-ip` / `x-forwarded-for`. Vercel sets these. O
 - Errors map to standard responses: malformed JSON → 400, validation → 422 with field errors, timeout → 504, database unavailable → 503, anything unexpected → 500 (reported to Sentry).
 - Errors share one shape, `{ ok: false, code, message }`, and every response carries an `X-Request-Id`.
 
-**Timeouts.** Outbound calls time out after: Yoco 15 s; Payfast, Pargo and Resend 10 s; Redis 1.5 s. API routes stop before the host does (10–28 s). Database connect and pool waits are 10 s (set in `DATABASE_URL`). In the browser, price quotes retry automatically, and checkout retries once (safe, see below).
+**Timeouts.** Outbound calls time out after: Yoco 15 s; Payfast, Pargo and Resend 10 s; Redis 1.5 s. API routes stop before the host does (10–28 s). Database connect and pool waits are 10 s (added to `DATABASE_URL` automatically unless it sets its own). In the browser, price quotes retry automatically, and checkout retries once (safe, see below).
 
 **Duplicate payments** are blocked at every step:
 1. The Pay button ignores double clicks and double Enter.
@@ -156,7 +163,7 @@ The client IP is read from `x-real-ip` / `x-forwarded-for`. Vercel sets these. O
 7. A Payfast notification that can't be verified yet gets a 503, so Payfast retries it.
 
 **In the UI:**
-- Loading skeletons on storefront and admin pages.
+- Loading skeletons on storefront pages, and a loading dot next to the admin menu item you clicked.
 - Empty states for searches, filters and empty lists.
 - An offline banner.
 - Friendly messages with Retry when a request fails or times out. The bag and form contents are kept.

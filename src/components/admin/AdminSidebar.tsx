@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -29,6 +29,17 @@ const NAV = [
   { href: "/admin/settings", label: "Settings", Icon: Settings },
 ];
 
+/** Pulses next to a sidebar link while its page is loading. */
+function PendingDot() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("h-1.5 w-1.5 rounded-full bg-gold-400 transition-opacity", pending ? "animate-pulse opacity-100" : "opacity-0")}
+    />
+  );
+}
+
 export function AdminSidebar({ adminName, pendingCount }: { adminName: string; pendingCount: number }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -49,6 +60,7 @@ export function AdminSidebar({ adminName, pendingCount }: { adminName: string; p
           >
             <Icon className="h-4 w-4" />
             <span className="flex-1">{label}</span>
+            <PendingDot />
             {href === "/admin/orders" && pendingCount > 0 && (
               <span className="rounded-full bg-gold-500 px-2 py-0.5 text-[10px] font-bold text-ink-900">{pendingCount}</span>
             )}
