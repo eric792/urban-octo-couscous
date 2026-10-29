@@ -7,9 +7,10 @@ import { ProductGallery } from "@/components/storefront/ProductGallery";
 import { ProductPurchasePanel } from "@/components/storefront/ProductPurchasePanel";
 import { StarRating } from "@/components/storefront/StarRating";
 import { getProductBySlug, getRelatedProducts } from "@/lib/catalog";
-import { STORE_NAME } from "@/lib/constants";
+import { STORE_NAME as STORE_NAME_TEXT } from "@/lib/constants";
+import { breadcrumbJsonLd, productDescription, productJsonLd, productTitle, socialImage } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
-import { absoluteUrl, formatDate, formatZAR, jsonLd, parseScentNotes } from "@/lib/utils";
+import { formatDate, formatZAR, jsonLd, parseScentNotes } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
 
@@ -17,12 +18,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Product not found" };
-  const description = product.tagline ?? product.description.slice(0, 155);
+  const title = productTitle(product);
+  const description = productDescription(product);
   return {
-    title: `${product.name} — ${product.category.name}`,
+    title,
     description,
     alternates: { canonical: `/product/${product.slug}` },
-    openGraph: { title: product.name, description, type: "website" },
+    openGraph: { title, description, type: "website", url: `/product/${product.slug}`, images: [{ url: socialImage(product.images) }] },
   };
 }
 
@@ -37,46 +39,38 @@ export default async function ProductPage({ params }: { params: Params }) {
   ]);
   const notes = parseScentNotes(product.scentNotes);
 
-  const productJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.description,
-    image: product.images.map((src) => (src.startsWith("http") ? src : absoluteUrl(src))),
-    sku: product.variants[0]?.sku,
-    brand: { "@type": "Brand", name: STORE_NAME },
-    category: product.category.name,
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "ZAR",
-      lowPrice: Math.min(...product.variants.map((v) => v.price)),
-      highPrice: Math.max(...product.variants.map((v) => v.price)),
-      offerCount: product.variants.length,
-      availability: product.variants.some((v) => v.stock > 0)
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-      url: absoluteUrl(`/product/${product.slug}`),
-    },
-    ...(product.rating !== null && {
-      aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating.toFixed(1), reviewCount: product.reviewCount },
-    }),
-  };
+  const structuredData = [
+    productJsonLd(product, settings),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: product.category.name, path: `/shop/${product.category.slug}` },
+      { name: product.name, path: `/product/${product.slug}` },
+    ]),
+  ];
+  const sizes = product.variants.map((v) => v.volume).filter(Boolean).join(" · ");
+  const details = [
+    ["Concentration", product.concentration],
+    [product.concentration ? "Scent family" : "Type", product.scentFamily],
+    ["Sizes", sizes || null],
+  ].filter((d): d is [string, string] => Boolean(d[1]));
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productJsonLd) }} />
+      {structuredData.map((data, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(data) }} />
+      ))}
 
       <div className="container-luxe py-10">
         <nav className="text-xs uppercase tracking-[0.18em] text-zinc-500" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-gold-300">Home</Link>
           <span className="mx-2">/</span>
-          <Link href={`/shop?category=${product.category.slug}`} className="hover:text-gold-300">{product.category.name}</Link>
+          <Link href={`/shop/${product.category.slug}`} className="hover:text-gold-300">{product.category.name}</Link>
           <span className="mx-2">/</span>
           <span className="text-zinc-300">{product.name}</span>
         </nav>
 
         <div className="mt-8 grid gap-12 lg:grid-cols-2 lg:gap-16">
-          <ProductGallery images={product.images} name={product.name} />
+          <ProductGallery images={product.images} name={`${product.name}${product.concentration ? ` ${product.concentration}` : ""} by Zen Amour`} />
 
           <div className="lg:py-4">
             <p className="eyebrow">{product.category.name}</p>
@@ -104,6 +98,31 @@ export default async function ProductPage({ params }: { params: Params }) {
                     </div>
                   ))}
                 </dl>
+              </div>
+            )}
+
+            {(details.length > 0 || product.inspiredBy) && (
+              <div className="mb-8">
+                <h2 className="label">Details</h2>
+                <dl className="divide-y divide-ink-600 border-y border-ink-600 text-sm">
+                  {details.map(([label, value]) => (
+                    <div key={label} className="flex justify-between gap-6 py-3">
+                      <dt className="text-zinc-500">{label}</dt>
+                      <dd className="text-right text-zinc-200">{value}</dd>
+                    </div>
+                  ))}
+                  {product.inspiredBy && (
+                    <div className="flex justify-between gap-6 py-3">
+                      <dt className="text-zinc-500">Inspired by</dt>
+                      <dd className="text-right text-zinc-200">{product.inspiredBy}</dd>
+                    </div>
+                  )}
+                </dl>
+                {product.inspiredBy && (
+                  <p className="mt-3 text-xs text-zinc-500">
+                    {STORE_NAME_TEXT} is an independent brand and isn&apos;t affiliated with the owner of {product.inspiredBy}. The name is used only to describe the scent profile.
+                  </p>
+                )}
               </div>
             )}
 

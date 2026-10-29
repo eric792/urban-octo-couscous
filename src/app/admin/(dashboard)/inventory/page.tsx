@@ -52,6 +52,7 @@ export default async function AdminInventoryPage({ searchParams }: { searchParam
         <div className="rounded border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm text-zinc-300">
           {totals._sum.stock ?? 0} units · <span className="text-gold-400">{formatZAR(retailValue)}</span> retail value
         </div>
+        <Link href="/admin/inventory/categories" className="admin-btn-secondary">Category pages</Link>
         <Link href="/admin/inventory/new" className="admin-btn"><Plus className="h-4 w-4" /> New product</Link>
       </AdminHeader>
 

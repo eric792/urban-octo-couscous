@@ -97,6 +97,13 @@ Set `RESEND_API_KEY`, `EMAIL_FROM` (on a domain verified in Resend) and optional
 - [ ] Update the contact email, announcement bar and delivery fees in Admin → Settings.
 - [ ] Have the returns, privacy and wellness wording checked for your business (CPA, POPIA, SAHPRA).
 
+## SEO
+
+- Category pages live at `/shop/<category>` (old `?category=` links redirect permanently). Each has an editable H1, SEO title, meta description, intro and a Markdown guide + FAQ under the products: **Admin → Inventory → Category pages**. FAQ sections are also sent to Google as structured data.
+- Products have concentration, scent family/type, an optional "inspired by" field (get IP advice before using it) and optional SEO title/description overrides. Titles and descriptions are generated when left blank.
+- Filtered, sorted and search views are `noindex, follow` with a clean canonical.
+- The 11 [superseo skills](https://github.com/inhouseseo/superseo-skills) (Apache 2.0) are installed in `.claude/skills/` for Claude Code: `page-audit`, `eeat-audit`, `improve-content`, `write-content`, `content-brief`, `keyword-deep-dive`, `semantic-gap-analysis`, `topic-cluster-planning`, `featured-snippet-optimizer`, `linkbuilding`, `expert-interview`. The first audit is in [`docs/seo/page-audit.md`](docs/seo/page-audit.md).
+
 ## Useful scripts
 
 | Command | What it does |

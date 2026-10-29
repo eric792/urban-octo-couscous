@@ -57,6 +57,10 @@ export const getCategories = unstable_cache(
       name: c.name,
       slug: c.slug,
       description: c.description,
+      heading: c.heading,
+      seoTitle: c.seoTitle,
+      seoDescription: c.seoDescription,
+      content: c.content,
       productCount: c._count.products,
     }));
   },
@@ -144,7 +148,18 @@ export const getProductBySlug = unstable_cache(
         createdAt: r.createdAt.toISOString(),
       };
     });
-    return { ...toCard(p), description: p.description, scentNotes: p.scentNotes, reviews };
+    return {
+      ...toCard(p),
+      description: p.description,
+      scentNotes: p.scentNotes,
+      concentration: p.concentration,
+      scentFamily: p.scentFamily,
+      inspiredBy: p.inspiredBy,
+      seoTitle: p.seoTitle,
+      seoDescription: p.seoDescription,
+      updatedAt: p.updatedAt.toISOString(),
+      reviews,
+    };
   },
   ["product-by-slug"],
   CACHE,
@@ -193,8 +208,18 @@ function toPost(p: {
   content: string;
   coverImage: string;
   createdAt: Date;
+  updatedAt: Date;
 }): BlogPostDTO {
-  return { ...p, createdAt: p.createdAt.toISOString() };
+  return {
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    excerpt: p.excerpt,
+    content: p.content,
+    coverImage: p.coverImage,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+  };
 }
 
 export const getPublishedPosts = unstable_cache(

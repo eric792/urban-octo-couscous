@@ -16,7 +16,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
       <div className="relative aspect-[4/5] overflow-hidden bg-ink-700">
         <ProductImage
           src={product.images[0]}
-          alt={product.name}
+          alt={`${product.name} — ${product.category.name.toLowerCase()} by Zen Amour`}
           priority={priority}
           className="transition duration-700 group-hover:scale-[1.04]"
         />
@@ -48,7 +48,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
           {product.rating !== null && (
             <span className="flex items-center gap-1.5 text-xs text-zinc-500">
               <StarRating rating={product.rating} size="h-3 w-3" />
-              {product.reviewCount}
+              ({product.reviewCount})
             </span>
           )}
         </div>

@@ -6,6 +6,7 @@ import { ProductImage } from "@/components/storefront/ProductImage";
 import { getFeaturedProducts, getPostBySlug } from "@/lib/catalog";
 import { STORE_NAME } from "@/lib/constants";
 import { renderMarkdown } from "@/lib/markdown";
+import { socialImage } from "@/lib/seo";
 import { absoluteUrl, formatDate, jsonLd } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
@@ -18,7 +19,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     title: post.title,
     description: post.excerpt,
     alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: { type: "article", title: post.title, description: post.excerpt, publishedTime: post.createdAt },
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: post.excerpt,
+      publishedTime: post.createdAt,
+      modifiedTime: post.updatedAt,
+      images: [{ url: socialImage([post.coverImage]) }],
+    },
   };
 }
 
@@ -34,6 +42,8 @@ export default async function BlogPostPage({ params }: { params: Params }) {
     headline: post.title,
     description: post.excerpt,
     datePublished: post.createdAt,
+    dateModified: post.updatedAt,
+    author: { "@type": "Organization", name: `${STORE_NAME} Journal`, url: absoluteUrl("/blog") },
     image: post.coverImage.startsWith("http") ? post.coverImage : absoluteUrl(post.coverImage),
     publisher: { "@type": "Organization", name: STORE_NAME },
     mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
@@ -45,7 +55,9 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       <header className="container-luxe max-w-3xl text-center">
         <Link href="/blog" className="eyebrow hover:text-gold-300">The Journal</Link>
         <h1 className="mt-5 text-balance font-serif text-5xl font-light leading-tight text-white sm:text-6xl">{post.title}</h1>
-        <p className="mt-5 text-sm uppercase tracking-[0.2em] text-zinc-500">{formatDate(post.createdAt)}</p>
+        <p className="mt-5 text-sm uppercase tracking-[0.2em] text-zinc-500">
+          By the {STORE_NAME} team · <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+        </p>
       </header>
       <div className="container-luxe mt-12 max-w-5xl">
         <div className="relative aspect-[16/9] overflow-hidden bg-ink-700">

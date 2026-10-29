@@ -40,9 +40,9 @@ export function Footer({ settings }: { settings: PublicSettings }) {
         <div>
           <h5 className="mb-4 text-xs font-medium uppercase tracking-wider text-white">Shop</h5>
           <ul className="space-y-2.5">
-            <li><Link href="/shop?category=fragrances" className="transition hover:text-gold-300">Alternative Fragrances</Link></li>
-            <li><Link href="/shop?category=skincare" className="transition hover:text-gold-300">Skincare Essentials</Link></li>
-            <li><Link href="/shop?category=wellness" className="transition hover:text-gold-300">Wellness &amp; Supplements</Link></li>
+            <li><Link href="/shop/fragrances" className="transition hover:text-gold-300">Inspired Fragrances</Link></li>
+            <li><Link href="/shop/skincare" className="transition hover:text-gold-300">Skincare Essentials</Link></li>
+            <li><Link href="/shop/wellness" className="transition hover:text-gold-300">Wellness &amp; Supplements</Link></li>
             <li><Link href="/blog" className="transition hover:text-gold-300">The Journal</Link></li>
           </ul>
         </div>

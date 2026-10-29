@@ -3,6 +3,7 @@
 import { PrismaClient, type DeliveryMethod, type OrderStatus, type PaymentGateway } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
+import { CATEGORY_SEO, PRODUCT_ATTRIBUTES } from "./seo-content";
 
 const db = new PrismaClient();
 
@@ -44,7 +45,7 @@ const PRODUCTS: SeedProduct[] = [
     featured: true,
     scentNotes: "Top: Saffron, Pink Pepper | Heart: Damask Rose, Leather | Base: Agarwood, Amber, Sandalwood",
     description:
-      "A regal, smouldering oud inspired by the most coveted niche fragrances of the Gulf. Saffron and pink pepper spark the opening before a velvet heart of Damask rose and soft leather.\n\nThe dry-down is deep agarwood, warm amber and creamy sandalwood that lingers on skin for 10+ hours. An extrait de parfum for evenings, weddings and every moment you want to be remembered.",
+      "A regal, smouldering oud inspired by the most coveted niche fragrances of the Gulf. Saffron and pink pepper spark the opening before a velvet heart of Damask rose and soft leather.\n\nThe dry-down is deep agarwood, warm amber and creamy sandalwood that stays on skin well into the evening. An extrait de parfum for evenings, weddings and every moment you want to be remembered.",
     variants: perfume(349, 499, 799, [24, 40, 18], 599),
   },
   {
@@ -68,7 +69,7 @@ const PRODUCTS: SeedProduct[] = [
     featured: true,
     scentNotes: "Top: Saffron, Jasmine | Heart: Amberwood, Ambergris | Base: Fir Resin, Cedar",
     description:
-      "Luminous, addictive and endlessly complimented. Saffron and jasmine glow over a mineral amberwood accord, finished with fir resin and cedar for incredible projection.\n\nInspired by one of the world's most iconic luxury extraits — reinterpreted at a fraction of the price, without compromising on longevity.",
+      "Luminous, addictive and endlessly complimented. Saffron and jasmine glow over a mineral amberwood accord, finished with fir resin and cedar for a trail that fills a room.\n\nInspired by one of the world's most iconic luxury extraits — reinterpreted as an extrait at a fraction of the price.",
     variants: perfume(399, 549, 849, [15, 36, 12], 649),
   },
   {
@@ -133,7 +134,7 @@ const PRODUCTS: SeedProduct[] = [
     slug: "hyaluronic-dew-moisturiser",
     name: "Hyaluronic Dew Moisturiser",
     category: "skincare",
-    tagline: "Weightless gel-cream for 72-hour hydration",
+    tagline: "Weightless gel-cream for all-day hydration",
     sku: "HDM",
     description:
       "A bouncy gel-cream with multi-weight hyaluronic acid, squalane and ceramides that floods skin with moisture and strengthens the skin barrier — without any heaviness.\n\nIdeal under make-up and perfect for humid coastal climates.",
@@ -267,7 +268,7 @@ Two sprays are plenty in 30°C heat. Save the third for evenings.
 
 Store your bottles away from sunlight and car dashboards — heat breaks down fragrance oils faster than anything else.
 
-Shop our [fragrance collection](/shop?category=fragrances) to find your summer signature.`,
+Shop our [fragrance collection](/shop/fragrances) to find your summer signature.`,
     daysAgo: 19,
   },
   {
@@ -341,10 +342,11 @@ async function main() {
   // Categories
   const categoryIds: Record<string, string> = {};
   for (const c of CATEGORIES) {
+    const seo = CATEGORY_SEO[c.slug] ?? {};
     const row = await db.category.upsert({
       where: { slug: c.slug },
-      update: { name: c.name, description: c.description, sortOrder: c.sortOrder },
-      create: c,
+      update: { name: c.name, sortOrder: c.sortOrder, ...seo },
+      create: { ...c, ...seo },
     });
     categoryIds[c.slug] = row.id;
   }
@@ -356,6 +358,8 @@ async function main() {
       tagline: p.tagline,
       description: p.description,
       scentNotes: p.scentNotes ?? null,
+      concentration: PRODUCT_ATTRIBUTES[p.slug]?.concentration ?? null,
+      scentFamily: PRODUCT_ATTRIBUTES[p.slug]?.scentFamily ?? null,
       categoryId: categoryIds[p.category],
       images: [`/images/products/${p.slug}.svg`, `/images/products/${p.slug}-2.svg`],
       isFeatured: Boolean(p.featured),

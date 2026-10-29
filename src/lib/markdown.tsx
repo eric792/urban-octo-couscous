@@ -74,3 +74,34 @@ export function renderMarkdown(source: string): ReactNode[] {
     return <p key={key} className="my-5 leading-relaxed">{inline(lines.join(" "), key)}</p>;
   });
 }
+
+/** Plain text from inline Markdown (for structured data). */
+function stripInline(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)\s]+\)/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Pulls Q&A pairs from a "## Frequently asked questions" section:
+ * each "### Question" heading followed by its answer paragraphs.
+ */
+export function extractFaqs(source: string | null): { question: string; answer: string }[] {
+  if (!source) return [];
+  const blocks = source.replace(/\r\n/g, "\n").split(/\n{2,}/).map((b) => b.trim());
+  const start = blocks.findIndex((b) => /^##\s+.*question/i.test(b));
+  if (start === -1) return [];
+  const faqs: { question: string; answer: string }[] = [];
+  for (const block of blocks.slice(start + 1)) {
+    if (/^##\s/.test(block)) break;
+    if (block.startsWith("### ")) faqs.push({ question: stripInline(block.slice(4)), answer: "" });
+    else if (faqs.length) {
+      const last = faqs[faqs.length - 1];
+      last.answer = [last.answer, stripInline(block.replace(/^[-*>]\s+/gm, ""))].filter(Boolean).join(" ");
+    }
+  }
+  return faqs.filter((f) => f.question && f.answer);
+}

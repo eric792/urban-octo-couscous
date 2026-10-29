@@ -15,6 +15,11 @@ export interface ProductFormValues {
   tagline: string;
   description: string;
   scentNotes: string;
+  concentration: string;
+  scentFamily: string;
+  inspiredBy: string;
+  seoTitle: string;
+  seoDescription: string;
   images: string[];
   isFeatured: boolean;
   isActive: boolean;
@@ -41,6 +46,11 @@ export function ProductForm({
   const [tagline, setTagline] = useState(initial.tagline);
   const [description, setDescription] = useState(initial.description);
   const [scentNotes, setScentNotes] = useState(initial.scentNotes);
+  const [concentration, setConcentration] = useState(initial.concentration);
+  const [scentFamily, setScentFamily] = useState(initial.scentFamily);
+  const [inspiredBy, setInspiredBy] = useState(initial.inspiredBy);
+  const [seoTitle, setSeoTitle] = useState(initial.seoTitle);
+  const [seoDescription, setSeoDescription] = useState(initial.seoDescription);
   const [categoryId, setCategoryId] = useState(initial.categoryId);
   const [images, setImages] = useState(initial.images.join("\n"));
   const [isActive, setIsActive] = useState(initial.isActive);
@@ -79,6 +89,39 @@ export function ProductForm({
           <div>
             <label className="admin-label" htmlFor="scentNotes">Scent notes (fragrances)</label>
             <input id="scentNotes" name="scentNotes" value={scentNotes} onChange={(e) => setScentNotes(e.target.value)} placeholder="Top: Bergamot | Heart: Amber | Base: Oud" className="admin-input" />
+          </div>
+        </section>
+
+        <section className="admin-card space-y-5 p-6">
+          <h2 className="font-medium text-white">Product details</h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label className="admin-label" htmlFor="concentration">Concentration</label>
+              <input id="concentration" name="concentration" value={concentration} onChange={(e) => setConcentration(e.target.value)} placeholder="Extrait de Parfum" className="admin-input" />
+            </div>
+            <div>
+              <label className="admin-label" htmlFor="scentFamily">Scent family / type</label>
+              <input id="scentFamily" name="scentFamily" value={scentFamily} onChange={(e) => setScentFamily(e.target.value)} placeholder="Amber Woody" className="admin-input" />
+            </div>
+          </div>
+          <div>
+            <label className="admin-label" htmlFor="inspiredBy">Inspired by (optional)</label>
+            <input id="inspiredBy" name="inspiredBy" value={inspiredBy} onChange={(e) => setInspiredBy(e.target.value)} placeholder="Leave blank unless your legal advisor has approved naming the reference scent" className="admin-input" />
+            <p className="mt-1 text-xs text-zinc-600">Shown on the product page with a &ldquo;not affiliated&rdquo; note and added to the page title. Naming another brand&apos;s perfume carries trademark risk — get advice first.</p>
+          </div>
+        </section>
+
+        <section className="admin-card space-y-5 p-6">
+          <h2 className="font-medium text-white">Search engine listing</h2>
+          <div>
+            <label className="admin-label" htmlFor="seoTitle">SEO title (optional)</label>
+            <input id="seoTitle" name="seoTitle" maxLength={70} value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Generated from name, concentration and inspiration" className="admin-input" />
+            <p className="mt-1 text-xs text-zinc-600">{seoTitle.length}/48 characters before &ldquo; | Zen Amour&rdquo; is added.</p>
+          </div>
+          <div>
+            <label className="admin-label" htmlFor="seoDescription">Meta description (optional)</label>
+            <textarea id="seoDescription" name="seoDescription" rows={2} maxLength={170} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} placeholder="Generated from tagline, notes, sizes and price" className="admin-input" />
+            <p className="mt-1 text-xs text-zinc-600">{seoDescription.length}/155 characters.</p>
           </div>
         </section>
 

@@ -21,12 +21,14 @@ export function Hero({ leftImage, rightImage }: { leftImage?: string; rightImage
       )}
 
       <div className="mx-auto max-w-3xl animate-fade-up space-y-7 py-24">
-        <div className="inline-flex items-center gap-2 rounded-full border border-gold-500/30 bg-gold-500/10 px-4 py-1.5 text-[10px] uppercase tracking-[0.14em] text-gold-300 sm:text-[11px] sm:tracking-[0.25em]">
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>Affordable Luxury Crafted in South Africa</span>
-        </div>
-        <h1 className="text-balance font-serif text-5xl font-light leading-[1.05] tracking-wide text-white sm:text-6xl lg:text-7xl">
-          Quiet Luxury Meets <span className="gold-text font-normal italic">Everyday Price</span>
+        <h1 className="space-y-7">
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold-500/30 bg-gold-500/10 px-4 py-1.5 font-sans text-[10px] font-normal uppercase tracking-[0.14em] text-gold-300 sm:text-[11px] sm:tracking-[0.25em]">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            Inspired perfumes, skincare &amp; wellness · South Africa
+          </span>{" "}
+          <span className="block text-balance font-serif text-5xl font-light leading-[1.05] tracking-wide text-white sm:text-6xl lg:text-7xl">
+            Quiet Luxury Meets <span className="gold-text font-normal italic">Everyday Price</span>
+          </span>
         </h1>
         <p className="mx-auto max-w-xl text-base font-light text-zinc-400 sm:text-lg">
           Discover inspired alternative fragrances, high-efficacy skincare and premium wellness rituals designed for
@@ -36,7 +38,7 @@ export function Hero({ leftImage, rightImage }: { leftImage?: string; rightImage
           <Link href="/shop" className="btn-gold w-full sm:w-auto">
             Explore Collection
           </Link>
-          <Link href="/shop?category=fragrances" className="btn-outline w-full sm:w-auto">
+          <Link href="/shop/fragrances" className="btn-outline w-full sm:w-auto">
             Best Fragrances
           </Link>
         </div>

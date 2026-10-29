@@ -69,30 +69,42 @@ model Address {
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
-  description String?
-  sortOrder   Int       @default(0)
-  products    Product[]
+  id             String    @id @default(cuid())
+  name           String    @unique
+  slug           String    @unique
+  description    String?
+  sortOrder      Int       @default(0)
+  // SEO: optional overrides + Markdown copy shown below the product grid.
+  // A "## Frequently asked questions" section with "### Question" headings
+  // is also emitted as FAQPage structured data.
+  heading        String? // on-page H1, e.g. "Inspired Fragrances" (nav keeps the short name)
+  seoTitle       String?
+  seoDescription String?
+  content        String?
+  products       Product[]
 }
 
 model Product {
-  id          String           @id @default(cuid())
-  name        String
-  slug        String           @unique
-  tagline     String?
-  description String
-  scentNotes  String? // e.g. "Top: Bergamot, Heart: Amber, Base: Oud"
-  categoryId  String
-  category    Category         @relation(fields: [categoryId], references: [id])
-  variants    ProductVariant[]
-  images      String[] // local /images paths or Cloudinary / S3 URLs
-  isFeatured  Boolean          @default(false)
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  reviews     Review[]
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  tagline        String?
+  description    String
+  scentNotes     String? // e.g. "Top: Bergamot, Heart: Amber, Base: Oud"
+  concentration  String? // e.g. "Extrait de Parfum", "Eau de Parfum"
+  scentFamily    String? // e.g. "Amber Woody", "White Floral"
+  inspiredBy     String? // optional reference scent — get IP advice before using brand names
+  seoTitle       String?
+  seoDescription String?
+  categoryId     String
+  category       Category         @relation(fields: [categoryId], references: [id])
+  variants       ProductVariant[]
+  images         String[] // local /images paths or Cloudinary / S3 URLs
+  isFeatured     Boolean          @default(false)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  reviews        Review[]
 
   @@index([categoryId])
 }

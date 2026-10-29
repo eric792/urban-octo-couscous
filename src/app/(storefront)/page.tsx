@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Quote } from "lucide-react";
 import { Hero } from "@/components/storefront/Hero";
@@ -11,6 +12,13 @@ import { getCategories, getFeaturedProducts, getPublishedPosts, getTestimonials 
 import { LEGAL_NAME, STORE_NAME } from "@/lib/constants";
 import { getSettings } from "@/lib/settings";
 import { formatDate, getAppUrl, jsonLd } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: { absolute: "Inspired Perfumes & Skincare in South Africa | Zen Amour" },
+  description:
+    "Inspired perfumes, results-driven skincare and wellness rituals at an everyday price. Pargo pickup or courier delivery across South Africa.",
+  alternates: { canonical: "/" },
+};
 
 const CATEGORY_ART: Record<string, string> = {
   fragrances: "/images/products/amber-saffron-extrait.svg",
@@ -52,7 +60,7 @@ export default async function HomePage() {
         <SectionHeading eyebrow="The Collections" title="Curated Rituals" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {categories.map((c) => (
-            <Link key={c.id} href={`/shop?category=${c.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink-700">
+            <Link key={c.id} href={`/shop/${c.slug}`} className="group relative block aspect-[4/5] overflow-hidden bg-ink-700">
               <ProductImage
                 src={CATEGORY_ART[c.slug] ?? null}
                 alt={c.name}
@@ -117,7 +125,7 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
-          <Link href="/shop?category=fragrances" className="btn-outline mt-4">
+          <Link href="/shop/fragrances" className="btn-outline mt-4">
             Find your signature
           </Link>
         </div>

@@ -8,9 +8,9 @@ import { useCart } from "@/components/storefront/CartProvider";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { label: "Fragrances", href: "/shop?category=fragrances" },
-  { label: "Skincare", href: "/shop?category=skincare" },
-  { label: "Wellness", href: "/shop?category=wellness" },
+  { label: "Fragrances", href: "/shop/fragrances" },
+  { label: "Skincare", href: "/shop/skincare" },
+  { label: "Wellness", href: "/shop/wellness" },
   { label: "Shop All", href: "/shop" },
   { label: "Journal", href: "/blog" },
 ];

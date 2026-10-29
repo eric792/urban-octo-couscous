@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticPages,
-    ...categories.map((c) => ({ url: absoluteUrl(`/shop?category=${c.slug}`), changeFrequency: "weekly" as const, priority: 0.8 })),
+    ...categories.map((c) => ({ url: absoluteUrl(`/shop/${c.slug}`), changeFrequency: "weekly" as const, priority: 0.8 })),
     ...products.map((p) => ({ url: absoluteUrl(`/product/${p.slug}`), lastModified: p.updatedAt, priority: 0.9 })),
     ...posts.map((p) => ({ url: absoluteUrl(`/blog/${p.slug}`), lastModified: p.updatedAt, priority: 0.5 })),
   ];

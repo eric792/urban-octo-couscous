@@ -49,6 +49,12 @@ export interface ReviewDTO {
 export interface ProductDetailDTO extends ProductCardDTO {
   description: string;
   scentNotes: string | null;
+  concentration: string | null;
+  scentFamily: string | null;
+  inspiredBy: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  updatedAt: string;
   reviews: ReviewDTO[];
 }
 
@@ -57,6 +63,10 @@ export interface CategoryDTO {
   name: string;
   slug: string;
   description: string | null;
+  heading: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  content: string | null;
   productCount: number;
 }
 
@@ -68,6 +78,7 @@ export interface BlogPostDTO {
   content: string;
   coverImage: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CartItem {
