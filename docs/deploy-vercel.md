@@ -33,7 +33,7 @@ Then click **Deploy**. The first build will stop with *"No database connection f
 
 This adds `DATABASE_URL` and `DATABASE_URL_UNPOOLED` for you.
 
-> Using a different database (Supabase, your own server)? Set `DATABASE_URL` to its pooled connection and `DATABASE_URL_UNPOOLED` to its direct connection yourself. If it isn't in Frankfurt, change `"regions"` in `vercel.json` to the closest [Vercel region](https://vercel.com/docs/regions).
+> Using your own Postgres server instead? Set `DATABASE_URL` to its pooled connection and `DATABASE_URL_UNPOOLED` to its direct connection yourself. If it isn't in Frankfurt, change `"regions"` in `vercel.json` to the closest [Vercel region](https://vercel.com/docs/regions).
 
 ## 4. Add Redis (rate limits)
 

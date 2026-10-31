@@ -1,22 +1,22 @@
 /**
- * Database connection strings.
+ * Database connection strings (Neon Postgres).
  *
- * The app expects DATABASE_URL (pooled) and DATABASE_URL_UNPOOLED (direct), which
- * Neon's Vercel integration sets. Other Postgres integrations on Vercel (and Neon's
- * legacy option) use POSTGRES_* names instead, so those are accepted too.
+ * DATABASE_URL is Neon's pooled connection, used by the app.
+ * DATABASE_URL_UNPOOLED is the direct connection, used for migrations.
+ * Neon's Vercel integration sets both. Locally they can be the same.
  */
 export function databaseUrl(): string | undefined {
-  return process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || undefined;
+  return process.env.DATABASE_URL || undefined;
 }
 
 /** Direct (non-pooled) connection for migrations; falls back to the main URL. */
 export function directDatabaseUrl(): string | undefined {
-  return process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || databaseUrl();
+  return process.env.DATABASE_URL_UNPOOLED || databaseUrl();
 }
 
 /** Names (never values) of database-looking variables, for build-log diagnostics. */
 export function databaseVariableNames(): string[] {
   return Object.keys(process.env)
-    .filter((name) => /DATABASE|POSTGRES|NEON|PG(HOST|USER|DATABASE|PASSWORD)|_URL_(UNPOOLED|NON_POOLING)$/i.test(name))
+    .filter((name) => /DATABASE|NEON|PG(HOST|USER|DATABASE|PASSWORD)|_URL_UNPOOLED$/i.test(name))
     .sort();
 }

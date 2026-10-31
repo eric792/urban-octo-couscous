@@ -34,7 +34,7 @@ async function main() {
   if (!url) {
     const found = databaseVariableNames();
     fail(
-      `No database connection found for this ${target} build (looked for DATABASE_URL, POSTGRES_PRISMA_URL, POSTGRES_URL).\n` +
+      `No database connection found for this ${target} build (DATABASE_URL isn't set).\n` +
         `  Database-related variables visible to the build: ${found.length ? found.join(", ") : "none"}.\n` +
         "  Fix: in Vercel open Storage → Create Database → Neon (Frankfurt) and connect it to this project with\n" +
         "  the Production environment ticked and no custom prefix. Then open Deployments and Redeploy.",
