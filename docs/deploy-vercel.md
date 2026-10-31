@@ -23,7 +23,7 @@ The project is already configured for Vercel (`vercel.json`):
 
 Still on the import screen, open **Environment Variables** and paste the contents of `vercel.env` (the file Claude sent you). Vercel splits it into separate variables. If you don't have the file, see the [variable list](#environment-variables) below.
 
-Then click **Deploy**. The first build will stop with *"DATABASE_URL isn't set"*. That's expected, because the database comes next.
+Then click **Deploy**. The first build will stop with *"No database connection found"*. That's expected, because the database comes next.
 
 ## 3. Add the database
 
@@ -111,6 +111,9 @@ Every branch you push to GitHub gets its own preview URL.
 
 ## If a build fails
 
-- **"DATABASE_URL isn't set"**: do step 3, then redeploy.
+- **"No database connection found"**: the build log lists the database variables Vercel gave the build.
+  - **"none"**: Neon isn't connected to this project's Production environment yet. Do step 3, then redeploy.
+  - **Prefixed names** (e.g. `STORAGE_URL_UNPOOLED`): Neon was connected with a custom prefix. Disconnect it in Storage and connect it again with the prefix left empty, then redeploy.
+  - Adding or connecting a database only affects new deployments. Always **Redeploy** afterwards.
 - **"First deploy: add SEED_ADMIN_PASSWORD…"**: add it (12+ characters), then redeploy.
 - **Migration errors**: check that `DATABASE_URL_UNPOOLED` is set, which the Neon integration does. Then redeploy.

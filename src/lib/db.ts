@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { databaseUrl } from "@/lib/database-url";
 
 /**
  * Adds connect/pool timeouts unless the connection string already sets them,
@@ -23,7 +24,7 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 export const db =
   globalForPrisma.prisma ??
   new PrismaClient({
-    datasourceUrl: withTimeouts(process.env.DATABASE_URL),
+    datasourceUrl: withTimeouts(databaseUrl()),
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 

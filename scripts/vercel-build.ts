@@ -11,6 +11,7 @@
  * own database (e.g. Neon preview branches). */
 import { execSync } from "node:child_process";
 import { PrismaClient } from "@prisma/client";
+import { databaseUrl, databaseVariableNames, directDatabaseUrl } from "../src/lib/database-url";
 
 const target = process.env.VERCEL_ENV ?? "development";
 
@@ -29,18 +30,24 @@ async function main() {
     return;
   }
 
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    fail("DATABASE_URL isn't set. In Vercel, open Storage, connect a Neon Postgres database to this project, then redeploy.");
+  const url = databaseUrl();
+  if (!url) {
+    const found = databaseVariableNames();
+    fail(
+      `No database connection found for this ${target} build (looked for DATABASE_URL, POSTGRES_PRISMA_URL, POSTGRES_URL).\n` +
+        `  Database-related variables visible to the build: ${found.length ? found.join(", ") : "none"}.\n` +
+        "  Fix: in Vercel open Storage → Create Database → Neon (Frankfurt) and connect it to this project with\n" +
+        "  the Production environment ticked and no custom prefix. Then open Deployments and Redeploy.",
+    );
   }
-  // Databases without a separate direct connection: migrate over the same URL.
-  const env = { DATABASE_URL_UNPOOLED: process.env.DATABASE_URL_UNPOOLED || databaseUrl };
+  // Child processes (Prisma CLI, seed) read the standard names.
+  const env = { DATABASE_URL: url, DATABASE_URL_UNPOOLED: directDatabaseUrl() ?? url };
 
   console.log("[vercel-build] Applying database migrations…");
   run("npx --no-install prisma migrate deploy", env);
 
   // The seed creates the admin account last, so "no admin yet" means setup never finished.
-  const db = new PrismaClient({ datasourceUrl: databaseUrl });
+  const db = new PrismaClient({ datasourceUrl: url });
   const admins = await db.user.count({ where: { role: "ADMIN" } }).finally(() => db.$disconnect());
   if (admins > 0) {
     console.log("[vercel-build] Store already set up — catalogue and settings left as they are.");
