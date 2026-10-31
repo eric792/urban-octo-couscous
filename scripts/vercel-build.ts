@@ -33,11 +33,17 @@ async function main() {
   const url = databaseUrl();
   if (!url) {
     const found = databaseVariableNames();
+    const project = process.env.VERCEL_PROJECT_PRODUCTION_URL || "(unknown)";
+    // Presence only — never print values.
+    const has = (name: string) => (process.env[name] ? "yes" : "NO");
     fail(
       `No database connection found for this ${target} build (DATABASE_URL isn't set).\n` +
+        `  Vercel project: ${project}\n` +
         `  Database-related variables visible to the build: ${found.length ? found.join(", ") : "none"}.\n` +
-        "  Fix: in Vercel open Storage → Create Database → Neon (Frankfurt) and connect it to this project with\n" +
-        "  the Production environment ticked and no custom prefix. Then open Deployments and Redeploy.",
+        `  Other settings from vercel.env: AUTH_SECRET ${has("AUTH_SECRET")}, SEED_ADMIN_PASSWORD ${has("SEED_ADMIN_PASSWORD")}.\n` +
+        "  Fix: in this project's Storage tab, open the Neon database and click Connect Project, choose this\n" +
+        "  project and tick Production (no custom prefix). Add the vercel.env settings under Settings →\n" +
+        "  Environment Variables. Then open Deployments and Redeploy.",
     );
   }
   // Child processes (Prisma CLI, seed) read the standard names.
